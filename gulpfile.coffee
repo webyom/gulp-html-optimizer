@@ -11,6 +11,7 @@ gulp.task 'example', ->
 	through = require 'through2'
 	gulp.src('example/src/**/*.src.html')
 		.pipe htmlOptimizer
+			beautifyTemplate: true
 			properties:
 				version: '1.0.1'
 				author:

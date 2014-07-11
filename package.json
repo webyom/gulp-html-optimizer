@@ -1,6 +1,6 @@
 {
   "name": "gulp-html-optimizer",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Optimize html files.",
   "keywords": [
     "amd",
@@ -38,7 +38,7 @@
     "through2": "^0.5.1",
     "gulp-util": "^2.2.19",
     "gulp-coffee": "^2.0.1",
-    "gulp-amd-bundler": "^0.0.4"
+    "gulp-amd-bundler": "^0.0.6"
   },
   "devDependencies": {
     "gulp": "^3.8.5",

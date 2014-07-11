@@ -55,9 +55,9 @@ compileJs = (file, plainId) ->
 		].join EOL
 		resolve file
 
-compileAmd = (file, baseFile, plainId) ->
+compileAmd = (file, baseFile, beautifyTemplate, plainId) ->
 	Q.Promise (resolve, reject) ->
-		amdBundler.bundle(file, {baseFile: baseFile, inline: true}).then(
+		amdBundler.bundle(file, {baseFile: baseFile, inline: true, beautifyTemplate: beautifyTemplate}).then(
 			(file) ->
 				file.contents = new Buffer [
 					if plainId then '<script type="text/html" id="' + plainId + '">' else '<script type="text/javascript">'
@@ -107,7 +107,7 @@ compile = (file, baseFile, opt) ->
 				cwd: file.cwd
 				path: amdFilePath
 				contents: fs.readFileSync amdFilePath
-			asyncList.push compileAmd(amdFile, baseFile, plainId)
+			asyncList.push compileAmd(amdFile, baseFile, opt.beautifyTemplate, plainId)
 			asyncMark
 		)
 		Q.all(asyncList).then(
