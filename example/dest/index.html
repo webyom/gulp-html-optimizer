@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title>Document</title>
+<style type="text/css">
+.menu {
+  width: 200px;
+}
+
+</style>
+<script type="text/javascript">
+(function() {
+  var author, version;
+
+  version = '1.0.1';
+
+  author = 'Gary';
+
+}).call(this);
+
+</script>
+</head>
+<body>
+<script type="text/javascript">
+define(function(require) {
+	var modC = require('./sub/mod-c');
+
+	return {};
+});
+</script>
+<script type="text/html" id="mod-b">
+define(function(require) {
+	var modC = require('./sub/mod-c');
+
+	return {};
+});
+</script>
+<script type="text/javascript">
+define('./index', ['require', 'exports', 'module', './mod-a', './mod-b'], function(require, exports, module, modA) {
+	var modB = require('./mod-b');
+
+	return {};
+});
+
+define('./mod-a', ['require', 'exports', 'module', './sub/mod-c'], function(require) {
+	var modC = require('./sub/mod-c');
+
+	return {};
+});
+
+define('./mod-b', ['require', 'exports', 'module', './sub/mod-c'], function(require) {
+	var modC = require('./sub/mod-c');
+
+	return {};
+});
+
+define('./sub/mod-c', ['require', 'exports', 'module', '../mod-a', './tpl-a.tpl.html'], function(require) {
+	var modA = require('../mod-a');
+	var tplA = require('./tpl-a.tpl.html');
+
+	return {};
+});
+
+define('./sub/tpl-a.tpl.html', ['require', 'exports', 'module', '../mod-b'], function(require, exports, module) {
+	function $encodeHtml(str) {
+		return (str + '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/`/g, '&#96;').replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+	}
+	exports.render = function($data, $opt) {
+		$data = $data || {};
+		var _$out_= [];
+		var $print = function(str) {_$out_.push(str);};
+		
+		with($data) {
+		
+		
+var modB = require('../mod-b');
+
+		_$out_.push('<div>Hello</div>');
+		}
+		
+		return _$out_.join('');
+	};
+});
+require.processDefQueue('', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));
+</script>
+<script type="text/html" id="tpl-a">
+define('./sub/tpl-a.tpl.html', ['require', 'exports', 'module', '../mod-b'], function(require, exports, module) {
+	function $encodeHtml(str) {
+		return (str + '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/`/g, '&#96;').replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+	}
+	exports.render = function($data, $opt) {
+		$data = $data || {};
+		var _$out_= [];
+		var $print = function(str) {_$out_.push(str);};
+		
+		with($data) {
+		
+		
+var modB = require('../mod-b');
+
+		_$out_.push('<div>Hello</div>');
+		}
+		
+		return _$out_.join('');
+	};
+});
+
+define('./mod-b', ['require', 'exports', 'module', './sub/mod-c'], function(require) {
+	var modC = require('./sub/mod-c');
+
+	return {};
+});
+
+define('./sub/mod-c', ['require', 'exports', 'module', '../mod-a', './tpl-a.tpl.html'], function(require) {
+	var modA = require('../mod-a');
+	var tplA = require('./tpl-a.tpl.html');
+
+	return {};
+});
+
+define('./mod-a', ['require', 'exports', 'module', './sub/mod-c'], function(require) {
+	var modC = require('./sub/mod-c');
+
+	return {};
+});
+require.processDefQueue('', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));
+</script>
+<script type="text/javascript">
+define('./sub/mod-d', ['require', 'exports', 'module'], function(require, exports, module) {
+(function() {
+  module.exports = {};
+
+}).call(this);
+
+});
+require.processDefQueue('', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));
+</script>
+</body>
+</html>
