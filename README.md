@@ -1,2 +1,2 @@
-# gulp-amd-dependency
+# gulp-html-optimizer
 Optimize html files.
