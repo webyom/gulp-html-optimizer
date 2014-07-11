@@ -73,6 +73,7 @@ compileAmd = (file, baseFile, plainId) ->
 compile = (file, baseFile, opt) ->
 	Q.Promise (resolve, reject) ->
 		content = file.contents.toString 'utf-8'
+		content = replaceProperties content, _lang_: file._lang_
 		asyncList = []
 		content = content.replace(/<!--\s*include\s+(['"])([^'"]+)\.(inc\.html|less|coffee|js)\1(?:\s+plain-id:([\w-]+))?\s*-->/mg, (full, quote, incName, ext, plainId) ->
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
@@ -82,6 +83,7 @@ compile = (file, baseFile, opt) ->
 				cwd: file.cwd
 				path: incFilePath
 				contents: fs.readFileSync incFilePath
+			incFile._lang_ = file._lang_
 			if ext is 'inc.html'
 				asyncList.push compile(incFile, baseFile, opt)
 			if ext is 'less'
