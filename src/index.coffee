@@ -141,9 +141,6 @@ module.exports = (opt = {}) ->
 		compile(file, file, opt).then(
 			(file) =>
 				file.path = file.path.replace /\.src\.html$/, '\.html'
-				if opt.properties
-					content = replaceProperties file.contents.toString('utf-8'), opt.properties
-					file.contents = new Buffer content
 				@push file
 				next()
 			(err) =>

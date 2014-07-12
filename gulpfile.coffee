@@ -12,10 +12,6 @@ gulp.task 'example', ->
 	gulp.src('example/src/**/*.src.html')
 		.pipe htmlOptimizer
 			beautifyTemplate: true
-			properties:
-				version: '1.0.1'
-				author:
-					name: 'Gary'
 		.pipe gulp.dest('example/dest')
 
 gulp.task 'default', ['compile']
