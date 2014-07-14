@@ -8,7 +8,6 @@ gulp.task 'compile', ->
 
 gulp.task 'example', ->
 	htmlOptimizer = require './lib/index'
-	through = require 'through2'
 	gulp.src('example/src/**/*.src.html')
 		.pipe htmlOptimizer
 			beautifyTemplate: true
