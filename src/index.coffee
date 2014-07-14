@@ -1,7 +1,7 @@
 Q = require 'q'
 fs = require 'fs'
 path = require 'path'
-less = require 'less'
+less = require 'gulp-less'
 gutil = require 'gulp-util'
 through = require 'through2'
 coffee = require 'gulp-coffee'
@@ -9,27 +9,20 @@ amdBundler = require 'gulp-amd-bundler'
 
 EOL = '\n'
 
-compileLess = (file) ->
+compileLess = (file, lessOpt) ->
 	Q.Promise (resolve, reject) ->
-		less.render(
-			file.contents.toString('utf-8')
-			{
-				paths: path.dirname file.path
-				strictMaths: false
-				strictUnits: false
-				filename: file.path
-			}
-			(err, css) ->
-				if err
-					reject err
-				else
-					file.contents = new Buffer [
-						'<style type="text/css">'
-						css
-						'</style>'
-					].join EOL
-					resolve file
+		lessStream = less lessOpt
+		lessStream.pipe through.obj(
+			(file, enc, next) ->
+				file.contents = new Buffer [
+					'<style type="text/css">'
+						file.contents.toString 'utf8'
+					'</style>'
+				].join EOL
+				resolve file
+				next()
 		)
+		lessStream.end file
 
 compileCoffee = (file, coffeeOpt, plainId) ->
 	Q.Promise (resolve, reject) ->
@@ -87,7 +80,7 @@ compile = (file, baseFile, opt) ->
 			if ext is 'inc.html'
 				asyncList.push compile(incFile, baseFile, opt)
 			if ext is 'less'
-				asyncList.push compileLess incFile
+				asyncList.push compileLess(incFile, opt.lessOpt)
 			if ext is 'coffee'
 				asyncList.push compileCoffee(incFile, opt.coffeeOpt, plainId)
 			if ext is 'js'
