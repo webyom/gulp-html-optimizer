@@ -16,7 +16,7 @@ compileLess = (file, lessOpt) ->
 			(file, enc, next) ->
 				file.contents = new Buffer [
 					'<style type="text/css">'
-						file.contents.toString 'utf8'
+						file.contents.toString()
 					'</style>'
 				].join EOL
 				resolve file
@@ -31,7 +31,7 @@ compileCoffee = (file, coffeeOpt, plainId) ->
 			(file, enc, next) ->
 				file.contents = new Buffer [
 					if plainId then '<script type="text/html" id="' + plainId + '">' else '<script type="text/javascript">'
-					file.contents.toString 'utf8'
+					file.contents.toString()
 					'</script>'
 				].join EOL
 				resolve file
@@ -39,11 +39,20 @@ compileCoffee = (file, coffeeOpt, plainId) ->
 		)
 		coffeeStream.end file
 
+compileCss = (file) ->
+	Q.Promise (resolve, reject) ->
+		file.contents = new Buffer [
+			'<style type="text/css">'
+			file.contents.toString()
+			'</style>'
+		].join EOL
+		resolve file
+
 compileJs = (file, plainId) ->
 	Q.Promise (resolve, reject) ->
 		file.contents = new Buffer [
 			if plainId then '<script type="text/html" id="' + plainId + '">' else '<script type="text/javascript">'
-			file.contents.toString 'utf8'
+			file.contents.toString()
 			'</script>'
 		].join EOL
 		resolve file
@@ -54,7 +63,7 @@ compileAmd = (file, baseFile, beautifyTemplate, plainId) ->
 			(file) ->
 				file.contents = new Buffer [
 					if plainId then '<script type="text/html" id="' + plainId + '">' else '<script type="text/javascript">'
-					file.contents.toString 'utf8'
+					file.contents.toString()
 					if (/\brequire-plugin\b/).test(file.path) then 'require.processDefQueue();' else 'require.processDefQueue(\'\', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));'
 					'</script>'
 				].join EOL
@@ -65,7 +74,7 @@ compileAmd = (file, baseFile, beautifyTemplate, plainId) ->
 
 compile = (file, baseFile, opt) ->
 	Q.Promise (resolve, reject) ->
-		content = file.contents.toString 'utf-8'
+		content = file.contents.toString()
 		content = replaceProperties content, _lang_: file._lang_
 		asyncList = []
 		content = content.replace(/<!--\s*include\s+(['"])([^'"]+)\.(inc\.html|less|coffee|js)\1(?:\s+plain-id:([\w-]+))?\s*-->/mg, (full, quote, incName, ext, plainId) ->
@@ -83,6 +92,8 @@ compile = (file, baseFile, opt) ->
 				asyncList.push compileLess(incFile, opt.lessOpt)
 			if ext is 'coffee'
 				asyncList.push compileCoffee(incFile, opt.coffeeOpt, plainId)
+			if ext is 'css'
+				asyncList.push compileCss(incFile)
 			if ext is 'js'
 				asyncList.push compileJs(incFile, plainId)
 			asyncMark
@@ -106,7 +117,7 @@ compile = (file, baseFile, opt) ->
 		Q.all(asyncList).then(
 			(results) ->
 				results.forEach (incFile, i) ->
-					content = content.replace '<INC_PROCESS_ASYNC_MARK_' + i + '>', incFile.contents.toString 'utf8'
+					content = content.replace '<INC_PROCESS_ASYNC_MARK_' + i + '>', incFile.contents.toString()
 				file.contents = new Buffer content
 				resolve file
 			(err) ->
