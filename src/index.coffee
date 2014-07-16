@@ -9,13 +9,17 @@ amdBundler = require 'gulp-amd-bundler'
 
 EOL = '\n'
 
-compileLess = (file, lessOpt) ->
+compileLess = (file, opt) ->
 	Q.Promise (resolve, reject) ->
-		lessStream = less lessOpt
+		if opt.trace
+			trace = '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->' + EOL
+		else
+			trace = ''
+		lessStream = less opt.lessOpt
 		lessStream.pipe through.obj(
 			(file, enc, next) ->
 				file.contents = new Buffer [
-					'<style type="text/css">'
+					trace + '<style type="text/css">'
 						file.contents.toString()
 					'</style>'
 				].join EOL
@@ -24,13 +28,17 @@ compileLess = (file, lessOpt) ->
 		)
 		lessStream.end file
 
-compileCoffee = (file, coffeeOpt, plainId) ->
+compileCoffee = (file, plainId, opt) ->
 	Q.Promise (resolve, reject) ->
-		coffeeStream = coffee coffeeOpt
+		if opt.trace
+			trace = '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->' + EOL
+		else
+			trace = ''
+		coffeeStream = coffee opt.coffeeOpt
 		coffeeStream.pipe through.obj(
 			(file, enc, next) ->
 				file.contents = new Buffer [
-					if plainId then '<script type="text/html" id="' + plainId + '">' else '<script type="text/javascript">'
+					if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script type="text/javascript">'
 					file.contents.toString()
 					'</script>'
 				].join EOL
@@ -39,30 +47,42 @@ compileCoffee = (file, coffeeOpt, plainId) ->
 		)
 		coffeeStream.end file
 
-compileCss = (file) ->
+compileCss = (file, opt) ->
 	Q.Promise (resolve, reject) ->
+		if opt.trace
+			trace = '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->' + EOL
+		else
+			trace = ''
 		file.contents = new Buffer [
-			'<style type="text/css">'
+			trace + '<style type="text/css">'
 			file.contents.toString()
 			'</style>'
 		].join EOL
 		resolve file
 
-compileJs = (file, plainId) ->
+compileJs = (file, plainId, opt) ->
 	Q.Promise (resolve, reject) ->
+		if opt.trace
+			trace = '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->' + EOL
+		else
+			trace = ''
 		file.contents = new Buffer [
-			if plainId then '<script type="text/html" id="' + plainId + '">' else '<script type="text/javascript">'
+			if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script type="text/javascript">'
 			file.contents.toString()
 			'</script>'
 		].join EOL
 		resolve file
 
-compileAmd = (file, baseFile, beautifyTemplate, plainId) ->
+compileAmd = (file, baseFile, plainId, opt) ->
 	Q.Promise (resolve, reject) ->
-		amdBundler.bundle(file, {baseFile: baseFile, inline: true, beautifyTemplate: beautifyTemplate}).then(
+		if opt.trace
+			trace = '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->' + EOL
+		else
+			trace = ''
+		amdBundler.bundle(file, {baseFile: baseFile, inline: true, beautifyTemplate: opt.beautifyTemplate, trace: opt.trace}).then(
 			(file) ->
 				file.contents = new Buffer [
-					if plainId then '<script type="text/html" id="' + plainId + '">' else '<script type="text/javascript">'
+					if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script type="text/javascript">'
 					file.contents.toString()
 					if (/\brequire-plugin\b/).test(file.path) then 'require.processDefQueue();' else 'require.processDefQueue(\'\', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));'
 					'</script>'
@@ -89,13 +109,13 @@ compile = (file, baseFile, opt) ->
 			if ext is 'inc.html'
 				asyncList.push compile(incFile, baseFile, opt)
 			if ext is 'less'
-				asyncList.push compileLess(incFile, opt.lessOpt)
+				asyncList.push compileLess(incFile, opt)
 			if ext is 'coffee'
-				asyncList.push compileCoffee(incFile, opt.coffeeOpt, plainId)
+				asyncList.push compileCoffee(incFile, plainId, opt)
 			if ext is 'css'
-				asyncList.push compileCss(incFile)
+				asyncList.push compileCss(incFile, opt)
 			if ext is 'js'
-				asyncList.push compileJs(incFile, plainId)
+				asyncList.push compileJs(incFile, plainId, opt)
 			asyncMark
 		).replace(/<!--\s*require\s+(['"])([^'"]+)\1(?:\s+plain-id:([\w-]+))?\s*-->/mg, (full, quote, amdName, plainId) ->
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
@@ -111,7 +131,7 @@ compile = (file, baseFile, opt) ->
 				cwd: file.cwd
 				path: amdFilePath
 				contents: fs.readFileSync amdFilePath
-			asyncList.push compileAmd(amdFile, baseFile, opt.beautifyTemplate, plainId)
+			asyncList.push compileAmd(amdFile, baseFile, plainId, opt)
 			asyncMark
 		)
 		Q.all(asyncList).then(
