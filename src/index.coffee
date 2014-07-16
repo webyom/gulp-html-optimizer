@@ -164,7 +164,11 @@ module.exports = (opt = {}) ->
 		return @emit 'error', new gutil.PluginError('gulp-html-optimizer', 'Streams not supported') if file.isStream()
 		compile(file, file, opt).then(
 			(file) =>
-				file.path = file.path.replace /\.src\.html$/, '\.html'
+				if (/\.src\.html$/).test file.path
+					if opt.trace
+						content = file.contents.toString().replace /(<body[^>]*>)/i, '$1' + EOL + '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->'
+						file.contents = new Buffer content
+					file.path = file.path.replace /\.src\.html$/, '\.html'
 				@push file
 				next()
 			(err) =>
