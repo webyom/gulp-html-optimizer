@@ -107,6 +107,9 @@ compile = (file, baseFile, opt) ->
 				contents: fs.readFileSync incFilePath
 			incFile._lang_ = file._lang_
 			if ext is 'inc.html'
+				if opt.trace
+					trace = '<!-- trace:' + path.relative(process.cwd(), incFile.path) + ' -->' + EOL
+					incFile.contents = new Buffer trace + incFile.contents.toString()
 				asyncList.push compile(incFile, baseFile, opt)
 			if ext is 'less'
 				asyncList.push compileLess(incFile, opt)
