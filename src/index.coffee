@@ -73,18 +73,18 @@ compileJs = (file, plainId, opt) ->
 		].join EOL
 		resolve file
 
-compileAmd = (file, baseFile, plainId, opt) ->
+compileAmd = (file, baseFile, baseDir, plainId, opt) ->
 	Q.Promise (resolve, reject) ->
 		if opt.trace
 			trace = '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->' + EOL
 		else
 			trace = ''
-		amdBundler.bundle(file, {baseFile: baseFile, inline: true, beautifyTemplate: opt.beautifyTemplate, trace: opt.trace}).then(
+		amdBundler.bundle(file, {baseFile: baseFile, baseDir: baseDir || path.dirname(baseFile.path), inline: true, beautifyTemplate: opt.beautifyTemplate, trace: opt.trace}).then(
 			(file) ->
 				file.contents = new Buffer [
 					if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script type="text/javascript">'
 					file.contents.toString()
-					if (/\brequire-plugin\b/).test(file.path) then 'require.processDefQueue();' else 'require.processDefQueue(\'\', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));'
+					if baseDir or (/\brequire-plugin\b/).test(file.path) then 'require.processDefQueue();' else 'require.processDefQueue(\'\', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));'
 					'</script>'
 				].join EOL
 				resolve file
@@ -92,14 +92,31 @@ compileAmd = (file, baseFile, plainId, opt) ->
 				reject err
 		)
 
+getParams = (params) ->
+	res = {}
+	return res if not params
+	params = params.split /\s+/
+	params.forEach (param) ->
+		m = param.match /([\w\-]+)=(['"])([^'"]+)\2/
+		if m
+			key = m[1].replace /\-(\w)/g, (full, w) -> w.toUpperCase()
+			res[key] = m[3]
+	res
+
 compile = (file, baseFile, opt) ->
 	Q.Promise (resolve, reject) ->
 		content = file.contents.toString()
 		content = replaceProperties content, _lang_: file._lang_
 		asyncList = []
-		content = content.replace(/<!--\s*include\s+(['"])([^'"]+)\.(inc\.html|less|coffee|css|js)\1(?:\s+plain-id:([\w-]+))?\s*-->/mg, (full, quote, incName, ext, plainId) ->
+		fileDir = path.dirname file.path
+		baseDir = ''
+		content = content.replace(/<!--\s*require-base-dir\s+(['"])([^'"]+)\1\s*-->/mg, (full, quote, base) ->
+			baseDir = base
+			''
+		).replace(/<!--\s*include\s+(['"])([^'"]+)\.(inc\.html|less|coffee|css|js)\1\s*(.*?)\s*-->/mg, (full, quote, incName, ext, params) ->
+			params = getParams params
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
-			incFilePath = path.resolve path.dirname(file.path), incName + '.' + ext
+			incFilePath = path.resolve fileDir, incName + '.' + ext
 			incFile = new gutil.File
 				base: file.base
 				cwd: file.cwd
@@ -114,15 +131,16 @@ compile = (file, baseFile, opt) ->
 			if ext is 'less'
 				asyncList.push compileLess(incFile, opt)
 			if ext is 'coffee'
-				asyncList.push compileCoffee(incFile, plainId, opt)
+				asyncList.push compileCoffee(incFile, params.plainId, opt)
 			if ext is 'css'
 				asyncList.push compileCss(incFile, opt)
 			if ext is 'js'
-				asyncList.push compileJs(incFile, plainId, opt)
+				asyncList.push compileJs(incFile, params.plainId, opt)
 			asyncMark
-		).replace(/<!--\s*require\s+(['"])([^'"]+)\1(?:\s+plain-id:([\w-]+))?\s*-->/mg, (full, quote, amdName, plainId) ->
+		).replace(/<!--\s*require\s+(['"])([^'"]+)\1\s*(.*?)\s*-->/mg, (full, quote, amdName, params) ->
+			params = getParams params
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
-			amdFilePath = path.resolve path.dirname(file.path), amdName
+			amdFilePath = path.resolve fileDir, amdName
 			if fs.existsSync amdFilePath
 				amdFilePath = amdFilePath
 			else if fs.existsSync amdFilePath + '.coffee'
@@ -134,7 +152,7 @@ compile = (file, baseFile, opt) ->
 				cwd: file.cwd
 				path: amdFilePath
 				contents: fs.readFileSync amdFilePath
-			asyncList.push compileAmd(amdFile, baseFile, plainId, opt)
+			asyncList.push compileAmd(amdFile, baseFile, params.baseDir && path.resolve(fileDir, params.baseDir) || baseDir && path.resolve(fileDir, baseDir), params.plainId, opt)
 			asyncMark
 		)
 		Q.all(asyncList).then(
