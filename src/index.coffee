@@ -152,7 +152,7 @@ compile = (file, baseFile, opt) ->
 				cwd: file.cwd
 				path: amdFilePath
 				contents: fs.readFileSync amdFilePath
-			asyncList.push compileAmd(amdFile, baseFile, params.baseDir && path.resolve(fileDir, params.baseDir) || baseDir && path.resolve(fileDir, baseDir), params.plainId, opt)
+			asyncList.push compileAmd(amdFile, baseFile, params.baseDir && path.resolve(fileDir, params.baseDir) || baseDir && path.resolve(fileDir, baseDir) || opt.requireBaseDir && path.resolve(process.cwd(), opt.requireBaseDir), params.plainId, opt)
 			asyncMark
 		)
 		Q.all(asyncList).then(
