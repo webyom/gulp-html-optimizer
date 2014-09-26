@@ -73,7 +73,7 @@ compileJs = (file, plainId, opt) ->
 		].join EOL
 		resolve file
 
-compileAmd = (file, baseFile, baseDir, plainId, opt) ->
+compileAmd = (file, baseFile, baseDir, params, opt) ->
 	Q.Promise (resolve, reject) ->
 		if opt.trace
 			trace = '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->' + EOL
@@ -81,12 +81,21 @@ compileAmd = (file, baseFile, baseDir, plainId, opt) ->
 			trace = ''
 		amdBundler.bundle(file, {baseFile: baseFile, baseDir: baseDir || path.dirname(baseFile.path), inline: true, beautifyTemplate: opt.beautifyTemplate, trace: opt.trace}).then(
 			(file) ->
-				file.contents = new Buffer [
-					if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script type="text/javascript">'
-					file.contents.toString()
-					if baseDir or (/\brequire-plugin\b/).test(file.path) then 'require.processDefQueue();' else 'require.processDefQueue(\'\', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));'
-					'</script>'
-				].join EOL
+				if params.render and (/\.tpl\.html\.js$/).test file.path
+					define = (id, deps, factory) ->
+						factory
+					factory = null
+					eval 'factory = ' + file.contents.toString()
+					exp = {}
+					factory null, exp, null
+					file.contents = new Buffer trace + exp.render(params)
+				else
+					file.contents = new Buffer [
+						if params.plainId then trace + '<script type="text/html" id="' + params.plainId + '">' else trace + '<script type="text/javascript">'
+						file.contents.toString()
+						if baseDir or (/\brequire-plugin\b/).test(file.path) then 'require.processDefQueue();' else 'require.processDefQueue(\'\', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));'
+						'</script>'
+					].join EOL
 				resolve file
 			(err) ->
 				reject err
@@ -97,7 +106,7 @@ getParams = (params) ->
 	return res if not params
 	params = params.split /\s+/
 	params.forEach (param) ->
-		m = param.match /([\w\-]+)=(['"])([^'"]+)\2/
+		m = param.match /([\w\-]+)=(['"])([^\2]*)\2/
 		if m
 			key = m[1].replace /\-(\w)/g, (full, w) -> w.toUpperCase()
 			res[key] = m[3]
@@ -152,7 +161,7 @@ compile = (file, baseFile, opt) ->
 				cwd: file.cwd
 				path: amdFilePath
 				contents: fs.readFileSync amdFilePath
-			asyncList.push compileAmd(amdFile, baseFile, params.baseDir && path.resolve(fileDir, params.baseDir) || baseDir && path.resolve(fileDir, baseDir) || opt.requireBaseDir && path.resolve(process.cwd(), opt.requireBaseDir), params.plainId, opt)
+			asyncList.push compileAmd(amdFile, baseFile, params.baseDir && path.resolve(fileDir, params.baseDir) || baseDir && path.resolve(fileDir, baseDir) || opt.requireBaseDir && path.resolve(process.cwd(), opt.requireBaseDir), params, opt)
 			asyncMark
 		)
 		Q.all(asyncList).then(
