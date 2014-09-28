@@ -1,3 +1,4 @@
+_ = require 'lodash'
 Q = require 'q'
 fs = require 'fs'
 path = require 'path'
@@ -104,18 +105,15 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 getParams = (params) ->
 	res = {}
 	return res if not params
-	params = params.split /\s+/
-	params.forEach (param) ->
-		m = param.match /([\w\-]+)=(['"])([^\2]*)\2/
-		if m
-			key = m[1].replace /\-(\w)/g, (full, w) -> w.toUpperCase()
-			res[key] = m[3]
+	r = /([\w\-]+)=(['"])([^'"]*)\2/g
+	while m = r.exec params
+		res[m[1]] = m[3]
 	res
 
-compile = (file, baseFile, opt) ->
+compile = (file, baseFile, properties, opt) ->
 	Q.Promise (resolve, reject) ->
 		content = file.contents.toString()
-		content = replaceProperties content, _lang_: file._lang_
+		content = replaceProperties content, _.extend({}, properties, _lang_: file._lang_)
 		asyncList = []
 		fileDir = path.dirname file.path
 		baseDir = ''
@@ -136,7 +134,7 @@ compile = (file, baseFile, opt) ->
 				if opt.trace
 					trace = '<!-- trace:' + path.relative(process.cwd(), incFile.path) + ' -->' + EOL
 					incFile.contents = new Buffer trace + incFile.contents.toString()
-				asyncList.push compile(incFile, baseFile, opt)
+				asyncList.push compile(incFile, baseFile, params, opt)
 			if ext is 'less'
 				asyncList.push compileLess(incFile, opt)
 			if ext is 'coffee'
@@ -192,7 +190,7 @@ module.exports = (opt = {}) ->
 	through.obj (file, enc, next) ->
 		return @emit 'error', new gutil.PluginError('gulp-html-optimizer', 'File can\'t be null') if file.isNull()
 		return @emit 'error', new gutil.PluginError('gulp-html-optimizer', 'Streams not supported') if file.isStream()
-		compile(file, file, opt).then(
+		compile(file, file, null, opt).then(
 			(file) =>
 				if (/\.src\.html$/).test file.path
 					if opt.trace
