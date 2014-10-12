@@ -3,6 +3,7 @@ Q = require 'q'
 fs = require 'fs'
 path = require 'path'
 less = require 'gulp-less'
+sass = require 'gulp-sass'
 gutil = require 'gulp-util'
 through = require 'through2'
 coffee = require 'gulp-coffee'
@@ -28,6 +29,22 @@ compileLess = (file, opt) ->
 				next()
 		)
 		lessStream.end file
+
+compileSass = (file, opt) ->
+	Q.Promise (resolve, reject) ->
+		if opt.trace
+			trace = '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->' + EOL
+		else
+			trace = ''
+		sassStream = sass opt.sassOpt
+		sassStream.on 'data', (file) ->
+			file.contents = new Buffer [
+				trace + '<style type="text/css">'
+					file.contents.toString()
+				'</style>'
+			].join EOL
+			resolve file
+		sassStream.write file
 
 compileCoffee = (file, plainId, opt) ->
 	Q.Promise (resolve, reject) ->
@@ -120,7 +137,7 @@ compile = (file, baseFile, properties, opt) ->
 		content = content.replace(/<!--\s*require-base-dir\s+(['"])([^'"]+)\1\s*-->/mg, (full, quote, base) ->
 			baseDir = base
 			''
-		).replace(/<!--\s*include\s+(['"])([^'"]+)\.(inc\.html|less|coffee|css|js)\1\s*(.*?)\s*-->/mg, (full, quote, incName, ext, params) ->
+		).replace(/<!--\s*include\s+(['"])([^'"]+)\.(inc\.html|less|scss|coffee|css|js)\1\s*(.*?)\s*-->/mg, (full, quote, incName, ext, params) ->
 			params = getParams params
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
 			incFilePath = path.resolve fileDir, incName + '.' + ext
@@ -137,6 +154,8 @@ compile = (file, baseFile, properties, opt) ->
 				asyncList.push compile(incFile, baseFile, params, opt)
 			if ext is 'less'
 				asyncList.push compileLess(incFile, opt)
+			if ext is 'scss'
+				asyncList.push compileSass(incFile, opt)
 			if ext is 'coffee'
 				asyncList.push compileCoffee(incFile, params.plainId, opt)
 			if ext is 'css'
