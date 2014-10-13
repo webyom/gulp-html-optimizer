@@ -184,7 +184,8 @@ compile = (file, baseFile, properties, opt) ->
 		Q.all(asyncList).then(
 			(results) ->
 				results.forEach (incFile, i) ->
-					content = content.replace '<INC_PROCESS_ASYNC_MARK_' + i + '>', incFile.contents.toString()
+					content = content.replace '<INC_PROCESS_ASYNC_MARK_' + i + '>', () ->
+						incFile.contents.toString()
 				file.contents = new Buffer content
 				resolve file
 			(err) ->
