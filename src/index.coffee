@@ -28,6 +28,10 @@ compileLess = (file, opt) ->
 				resolve file
 				next()
 		)
+		lessStream.on 'error', (e) ->
+			console.log 'gulp-mt2amd Error:', e.message
+			console.log 'file:', file.path
+			console.log 'line:', e.line
 		lessStream.end file
 
 compileSass = (file, opt) ->
@@ -44,6 +48,9 @@ compileSass = (file, opt) ->
 				'</style>'
 			].join EOL
 			resolve file
+		sassStream.on 'error', (e) ->
+			console.log 'gulp-mt2amd Error:', e.message
+			console.log 'file:', file.path
 		sassStream.write file
 
 compileCoffee = (file, plainId, opt) ->
@@ -63,6 +70,10 @@ compileCoffee = (file, plainId, opt) ->
 				resolve file
 				next()
 		)
+		coffeeStream.on 'error', (e) ->
+			console.log 'gulp-amd-bundler Error:', e.message
+			console.log 'file:', file.path
+			console.log e.stack
 		coffeeStream.end file
 
 compileCss = (file, opt) ->
