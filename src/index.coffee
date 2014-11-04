@@ -29,7 +29,7 @@ compileLess = (file, opt) ->
 				next()
 		)
 		lessStream.on 'error', (e) ->
-			console.log 'gulp-mt2amd Error:', e.message
+			console.log 'gulp-html-optimizer Error:', e.message
 			console.log 'file:', file.path
 			console.log 'line:', e.line
 		lessStream.end file
@@ -49,7 +49,7 @@ compileSass = (file, opt) ->
 			].join EOL
 			resolve file
 		sassStream.on 'error', (e) ->
-			console.log 'gulp-mt2amd Error:', e.message
+			console.log 'gulp-html-optimizer Error:', e.message
 			console.log 'file:', file.path
 		sassStream.write file
 
@@ -71,7 +71,7 @@ compileCoffee = (file, plainId, opt) ->
 				next()
 		)
 		coffeeStream.on 'error', (e) ->
-			console.log 'gulp-amd-bundler Error:', e.message
+			console.log 'gulp-html-optimizer Error:', e.message
 			console.log 'file:', file.path
 			console.log e.stack
 		coffeeStream.end file

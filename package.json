@@ -1,6 +1,6 @@
 {
   "name": "gulp-html-optimizer",
-  "version": "0.0.29",
+  "version": "0.0.30",
   "description": "Optimize html files.",
   "keywords": [
     "amd",
