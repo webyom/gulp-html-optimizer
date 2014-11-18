@@ -45,8 +45,13 @@ This is a property merge
 </script>
 </head>
 <body>
-<!-- trace:example/src/index.src.html -->
-<!-- trace:example/src/mod-a.js -->
+<!-- trace:example/src/index.html -->
+<!-- trace:example/src/index.base.html -->
+<!-- trace:example/src/root.base.html -->
+
+<div class="index-base">
+
+	<!-- trace:example/src/mod-a.js -->
 <script type="text/javascript">
 define(function(require) {
 	var modC = require('./sub/mod-c');
@@ -54,7 +59,7 @@ define(function(require) {
 	return {};
 });
 </script>
-<!-- trace:example/src/mod-b.js -->
+	<!-- trace:example/src/mod-b.js -->
 <script type="text/javascript">
 define(function(require) {
 	var modC = require('./sub/mod-c');
@@ -62,7 +67,7 @@ define(function(require) {
 	return {};
 });
 </script>
-<!-- trace:example/src/index.js -->
+	<!-- trace:example/src/index.js -->
 <script type="text/javascript">
 /* trace:example/src/index.js */
 define('index', ['require', 'exports', 'module', './mod-a', './mod-b'], function(require, exports, module, modA) {
@@ -114,7 +119,7 @@ define('mod-b', ['require', 'exports', 'module', './sub/mod-c'], function(requir
 });
 require.processDefQueue('', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));
 </script>
-<!-- trace:example/src/sub/tpl-a.tpl.html -->
+	<!-- trace:example/src/sub/tpl-a.tpl.html -->
 <script type="text/javascript">
 /* trace:example/src/sub/tpl-a.tpl.html */
 define('sub/tpl-a.tpl.html', ['require', 'exports', 'module', "../mod-b"], function(require, exports, module) {
@@ -159,7 +164,7 @@ define('mod-a', ['require', 'exports', 'module', './sub/mod-c'], function(requir
 });
 require.processDefQueue('', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));
 </script>
-<!-- trace:example/src/sub/mod-d.coffee -->
+	<!-- trace:example/src/sub/mod-d.coffee -->
 <script type="text/javascript">
 /* trace:example/src/sub/mod-d.coffee */
 define('sub/mod-d', ['require', 'exports', 'module'], function(require, exports, module) {
@@ -171,5 +176,8 @@ define('sub/mod-d', ['require', 'exports', 'module'], function(require, exports,
 });
 require.processDefQueue('', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));
 </script>
+
+</div>
+
 </body>
 </html>

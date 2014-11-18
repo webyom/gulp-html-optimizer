@@ -138,6 +138,64 @@ getParams = (params) ->
 		res[m[1]] = m[3]
 	res
 
+extendCache = {}
+compileExtendFile = (file, baseFile, extendFilePath, opt) ->
+	Q.Promise (resolve, reject) ->
+		cate = file._lang_ or 'misc'
+		extendFile = extendCache[cate]?[extendFilePath]
+		if not extendFile
+			extendFile = new gutil.File
+				base: file.base
+				cwd: file.cwd
+				path: extendFilePath
+				contents: fs.readFileSync extendFilePath
+			extendFile._lang_ = file._lang_ if file._lang_
+		if extendFile._compiled_
+			resolve extendFile
+		else
+			compile(extendFile, baseFile, null, opt).then(
+				(extendFile) =>
+					extendFile._compiled_ = true
+					extendCache[cate] ?= {}
+					extendCache[cate][extendFile.path] = extendFile
+					resolve extendFile
+				(err) =>
+					@emit 'error', new gutil.PluginError('gulp-html-optimizer', err)
+			).done()
+
+extend = (file, baseFile, opt) ->
+	Q.Promise (resolve, reject) ->
+		content = file.contents.toString()
+		fileDir = path.dirname file.path
+		extendFilePath = ''
+		content.replace(/<!--\s*extend\s+(['"])([^'"]+)\.(base\.html)\1\s*-->/mg, (full, quote, extendName, ext) ->
+			extendFilePath = path.resolve fileDir, extendName + '.' + ext
+		)
+		if extendFilePath
+			compileExtendFile(file, baseFile, extendFilePath, opt).then(
+				(extendFile) =>
+					sectionMap = {}
+					content.replace(/<!--\s*section\s+(['"])([^'"]+)\1\s*-->([\s\S]*?)<!--\s*\/section\s*-->/mg, (full, quote, sectionName, sectionContent) ->
+						sectionMap[sectionName] = sectionContent
+					)
+					content = extendFile.contents.toString()
+					content = content.replace(/<!--\s*yield\s+(['"])([^'"]+)\1\s*-->([\s\S]*?)<!--\s*\/yield\s*-->/mg, (full, quote, yieldName, yieldContent) ->
+						sectionMap[yieldName] or yieldContent
+					)
+					if opt.trace
+						trace = '<!-- trace:' + path.relative(process.cwd(), extendFile.path) + ' -->'
+						if (/(<body[^>]*>)/i).test content
+							content = content.replace /(<body[^>]*>)/i, '$1' + EOL + trace
+						else
+							content = trace + EOL + content
+					file.contents = new Buffer content
+					resolve file
+				(err) =>
+					@emit 'error', new gutil.PluginError('gulp-html-optimizer', err)
+			).done()
+		else
+			resolve file
+
 compile = (file, baseFile, properties, opt) ->
 	Q.Promise (resolve, reject) ->
 		content = file.contents.toString()
@@ -198,7 +256,15 @@ compile = (file, baseFile, properties, opt) ->
 					content = content.replace '<INC_PROCESS_ASYNC_MARK_' + i + '>', () ->
 						incFile.contents.toString()
 				file.contents = new Buffer content
-				resolve file
+				if not (/\.inc\.html/).test(file.path)
+					extend(file, baseFile, opt).then(
+						(file) ->
+							resolve file
+						(err) ->
+							@emit 'error', new gutil.PluginError('gulp-html-optimizer', err)
+					).done()
+				else
+					resolve file
 			(err) ->
 				reject err
 		).done()
@@ -224,10 +290,15 @@ module.exports = (opt = {}) ->
 		compile(file, file, null, opt).then(
 			(file) =>
 				if (/\.src\.html$/).test file.path
-					if opt.trace
-						content = file.contents.toString().replace /(<body[^>]*>)/i, '$1' + EOL + '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->'
-						file.contents = new Buffer content
 					file.path = file.path.replace /\.src\.html$/, '\.html'
+				if opt.trace
+					trace = '<!-- trace:' + path.relative(process.cwd(), file._originPath_ or file.path) + ' -->'
+					content = file.contents.toString()
+					if (/(<body[^>]*>)/i).test content
+						content = content.replace /(<body[^>]*>)/i, '$1' + EOL + trace
+					else
+						content = trace + EOL + content
+					file.contents = new Buffer content
 				@push file
 				next()
 			(err) =>
