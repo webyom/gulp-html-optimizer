@@ -168,8 +168,8 @@ extend = (file, baseFile, opt) ->
 		content = file.contents.toString()
 		fileDir = path.dirname file.path
 		extendFilePath = ''
-		content.replace(/<!--\s*extend\s+(['"])([^'"]+)\.(base\.html)\1\s*-->/mg, (full, quote, extendName, ext) ->
-			extendFilePath = path.resolve fileDir, extendName + '.' + ext
+		content.replace(/<!--\s*extend\s+(['"])([^'"]+)\1\s*-->/mg, (full, quote, extendFileName) ->
+			extendFilePath = path.resolve fileDir, extendFileName
 		)
 		if extendFilePath
 			compileExtendFile(file, baseFile, extendFilePath, opt).then(
@@ -206,7 +206,7 @@ compile = (file, baseFile, properties, opt) ->
 		content = content.replace(/<!--\s*require-base-dir\s+(['"])([^'"]+)\1\s*-->/mg, (full, quote, base) ->
 			baseDir = base
 			''
-		).replace(/<!--\s*include\s+(['"])([^'"]+)\.(inc\.html|less|scss|coffee|css|js)\1\s*(.*?)\s*-->/mg, (full, quote, incName, ext, params) ->
+		).replace(/<!--\s*include\s+(['"])([^'"]+)\.(less|scss|coffee|css|js|inc\.[^'"]+)\1\s*(.*?)\s*-->/mg, (full, quote, incName, ext, params) ->
 			params = getParams params
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
 			incFilePath = path.resolve fileDir, incName + '.' + ext
@@ -216,21 +216,21 @@ compile = (file, baseFile, properties, opt) ->
 				path: incFilePath
 				contents: fs.readFileSync incFilePath
 			incFile._lang_ = file._lang_
-			if ext is 'inc.html'
+			if ext is 'less'
+				asyncList.push compileLess(incFile, opt)
+			else if ext is 'scss'
+				asyncList.push compileSass(incFile, opt)
+			else if ext is 'coffee'
+				asyncList.push compileCoffee(incFile, params.plainId, opt)
+			else if ext is 'css'
+				asyncList.push compileCss(incFile, opt)
+			else if ext is 'js'
+				asyncList.push compileJs(incFile, params.plainId, opt)
+			else
 				if opt.trace
 					trace = '<!-- trace:' + path.relative(process.cwd(), incFile.path) + ' -->' + EOL
 					incFile.contents = new Buffer trace + incFile.contents.toString()
 				asyncList.push compile(incFile, baseFile, params, opt)
-			if ext is 'less'
-				asyncList.push compileLess(incFile, opt)
-			if ext is 'scss'
-				asyncList.push compileSass(incFile, opt)
-			if ext is 'coffee'
-				asyncList.push compileCoffee(incFile, params.plainId, opt)
-			if ext is 'css'
-				asyncList.push compileCss(incFile, opt)
-			if ext is 'js'
-				asyncList.push compileJs(incFile, params.plainId, opt)
 			asyncMark
 		).replace(/<!--\s*require\s+(['"])([^'"]+)\1\s*(.*?)\s*-->/mg, (full, quote, amdName, params) ->
 			params = getParams params
@@ -256,7 +256,7 @@ compile = (file, baseFile, properties, opt) ->
 					content = content.replace '<INC_PROCESS_ASYNC_MARK_' + i + '>', () ->
 						incFile.contents.toString()
 				file.contents = new Buffer content
-				if not (/\.inc\.html/).test(file.path)
+				if not (/\.inc\./).test(file.path)
 					extend(file, baseFile, opt).then(
 						(file) ->
 							resolve file
@@ -289,8 +289,8 @@ module.exports = (opt = {}) ->
 		return @emit 'error', new gutil.PluginError('gulp-html-optimizer', 'Streams not supported') if file.isStream()
 		compile(file, file, null, opt).then(
 			(file) =>
-				if (/\.src\.html$/).test file.path
-					file.path = file.path.replace /\.src\.html$/, '\.html'
+				if (/\.src\..+$/).test file.path
+					file.path = file.path.replace /\.src\.(.+)$/, '\.$1'
 				if opt.trace
 					trace = '<!-- trace:' + path.relative(process.cwd(), file._originPath_ or file.path) + ' -->'
 					content = file.contents.toString()
