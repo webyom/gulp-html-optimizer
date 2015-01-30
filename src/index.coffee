@@ -84,7 +84,7 @@ compileCss = (file, opt) ->
 			trace = ''
 		file.contents = new Buffer [
 			trace + '<style type="text/css">'
-			file.contents.toString()
+			if opt.postcss then opt.postcss(file) else file.contents.toString()
 			'</style>'
 		].join EOL
 		resolve file
