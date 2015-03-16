@@ -27,6 +27,10 @@
 <!-- trace:example/src/style.css -->
 <style type="text/css">
 .menu {
+	width: 30px;
+}
+
+.menu {
 	height: 30px;
 }
 </style>
@@ -105,7 +109,8 @@ define('sub/tpl-a.tpl.html', ['require', 'exports', 'module', "../mod-b"], funct
         with ($data) {
             /* trace:example/src/sub/tpl-a.tpl.html */
             var modB = require("../mod-b");
-            _$out_.push("<div>Hello</div>");
+            /* trace:example/src/style.css */
+            _$out_.push('<style type="text/css">.menu {width: 30px;}.menu {height: 30px;}</style><div>Hello</div>');
         }
         return _$out_.join("");
     };
@@ -135,7 +140,8 @@ define('sub/tpl-a.tpl.html', ['require', 'exports', 'module', "../mod-b"], funct
         with ($data) {
             /* trace:example/src/sub/tpl-a.tpl.html */
             var modB = require("../mod-b");
-            _$out_.push("<div>Hello</div>");
+            /* trace:example/src/style.css */
+            _$out_.push('<style type="text/css">.menu {width: 30px;}.menu {height: 30px;}</style><div>Hello</div>');
         }
         return _$out_.join("");
     };
