@@ -8,8 +8,34 @@ gutil = require 'gulp-util'
 through = require 'through2'
 coffee = require 'gulp-coffee'
 amdBundler = require 'gulp-amd-bundler'
+sus = require 'sus'
 
 EOL = '\n'
+
+htmlBase64img = (data, base, opt) ->
+	Q.Promise (resolve, reject) ->
+		if opt.base64img
+			data = data.replace /<img\s([^>]*)src="([^"]+)"/i, (full, extra, imgPath) ->
+				if imgPath.indexOf('.') is 0
+					'<img ' + extra + 'src="data:image/' + path.extname(imgPath).replace(/^\./, '') + ';base64,' + fs.readFileSync(path.resolve(base, imgPath), 'base64') + '"'
+				else
+					full
+			resolve data
+		else
+			resolve data
+
+cssBase64img = (data, base, opt) ->
+	Q.Promise (resolve, reject) ->
+		if opt.base64img
+			sus data,
+				base: base
+			.parse (err, parsed) ->
+				if err
+					reject err
+				else
+					resolve parsed.base() + EOL + parsed.sprites()
+		else
+			resolve data
 
 compileLess = (file, opt) ->
 	Q.Promise (resolve, reject) ->
@@ -20,13 +46,18 @@ compileLess = (file, opt) ->
 		lessStream = less opt.lessOpt
 		lessStream.pipe through.obj(
 			(file, enc, next) ->
-				file.contents = new Buffer [
-					trace + '<style type="text/css">'
-						file.contents.toString()
-					'</style>'
-				].join EOL
-				resolve file
-				next()
+				cssBase64img(file.contents.toString(), path.dirname(file.path), opt).then(
+					(content) ->
+						file.contents = new Buffer [
+							trace + '<style type="text/css">'
+								content
+							'</style>'
+						].join EOL
+						resolve file
+						next()
+					(err) ->
+						reject err
+				)
 		)
 		lessStream.on 'error', (e) ->
 			console.log 'gulp-html-optimizer Error:', e.message
@@ -42,16 +73,40 @@ compileSass = (file, opt) ->
 			trace = ''
 		sassStream = sass opt.sassOpt
 		sassStream.on 'data', (file) ->
-			file.contents = new Buffer [
-				trace + '<style type="text/css">'
-					file.contents.toString()
-				'</style>'
-			].join EOL
-			resolve file
+			cssBase64img(file.contents.toString(), path.dirname(file.path), opt).then(
+				(content) ->
+					file.contents = new Buffer [
+						trace + '<style type="text/css">'
+							content
+						'</style>'
+					].join EOL
+					resolve file
+				(err) ->
+					reject err
+			)
 		sassStream.on 'error', (e) ->
 			console.log 'gulp-html-optimizer Error:', e.message
 			console.log 'file:', file.path
 		sassStream.write file
+
+compileCss = (file, opt) ->
+	Q.Promise (resolve, reject) ->
+		if opt.trace
+			trace = '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->' + EOL
+		else
+			trace = ''
+		content = if opt.postcss then opt.postcss(file) else file.contents.toString()
+		cssBase64img(content, path.dirname(file.path), opt).then(
+			(content) ->
+				file.contents = new Buffer [
+					trace + '<style type="text/css">'
+						content
+					'</style>'
+				].join EOL
+				resolve file
+			(err) ->
+				reject err
+		)
 
 compileCoffee = (file, plainId, opt) ->
 	Q.Promise (resolve, reject) ->
@@ -76,19 +131,6 @@ compileCoffee = (file, plainId, opt) ->
 			console.log e.stack
 		coffeeStream.end file
 
-compileCss = (file, opt) ->
-	Q.Promise (resolve, reject) ->
-		if opt.trace
-			trace = '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->' + EOL
-		else
-			trace = ''
-		file.contents = new Buffer [
-			trace + '<style type="text/css">'
-			if opt.postcss then opt.postcss(file) else file.contents.toString()
-			'</style>'
-		].join EOL
-		resolve file
-
 compileJs = (file, plainId, opt) ->
 	Q.Promise (resolve, reject) ->
 		if opt.trace
@@ -108,7 +150,7 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 			trace = '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->' + EOL
 		else
 			trace = ''
-		amdBundler.bundle(file, {baseFile: baseFile, baseDir: baseDir || path.dirname(baseFile.path), inline: true, postcss: opt.postcss, beautifyTemplate: opt.beautifyTemplate, trace: opt.trace}).then(
+		amdBundler.bundle(file, {baseFile: baseFile, baseDir: baseDir || path.dirname(baseFile.path), inline: true, postcss: opt.postcss, base64img: opt.base64img, beautifyTemplate: opt.beautifyTemplate, trace: opt.trace}).then(
 			(file) ->
 				if params.render and (/\.tpl\.html\.js$/).test file.path
 					define = (id, deps, factory) ->
@@ -255,16 +297,21 @@ compile = (file, baseFile, properties, opt) ->
 				results.forEach (incFile, i) ->
 					content = content.replace '<INC_PROCESS_ASYNC_MARK_' + i + '>', () ->
 						incFile.contents.toString()
-				file.contents = new Buffer content
-				if not (/\.inc\./).test(file.path)
-					extend(file, baseFile, opt).then(
-						(file) ->
+				htmlBase64img(content, path.dirname(file.path), opt).then(
+					(content) ->
+						file.contents = new Buffer content
+						if not (/\.inc\./).test(file.path)
+							extend(file, baseFile, opt).then(
+								(file) ->
+									resolve file
+								(err) ->
+									@emit 'error', new gutil.PluginError('gulp-html-optimizer', err)
+							).done()
+						else
 							resolve file
-						(err) ->
-							@emit 'error', new gutil.PluginError('gulp-html-optimizer', err)
-					).done()
-				else
-					resolve file
+					(err) ->
+						reject err
+				)
 			(err) ->
 				reject err
 		).done()
