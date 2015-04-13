@@ -16,7 +16,7 @@ gulp.task 'example', ->
 			base64img: true
 			beautifyTemplate: true
 			trace: true
-			postcss: (file) ->
+			postcss: (file, type) ->
 				res = postcss()
 					.use postcssImport()
 					.use autoprefixer browsers: ['last 2 version']

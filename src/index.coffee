@@ -46,7 +46,8 @@ compileLess = (file, opt) ->
 		lessStream = less opt.lessOpt
 		lessStream.pipe through.obj(
 			(file, enc, next) ->
-				cssBase64img(file.contents.toString(), path.dirname(file.path), opt).then(
+				content = if opt.postcss then opt.postcss(file, 'less') else file.contents.toString()
+				cssBase64img(content, path.dirname(file.path), opt).then(
 					(content) ->
 						file.contents = new Buffer [
 							trace + '<style type="text/css">'
@@ -73,7 +74,8 @@ compileSass = (file, opt) ->
 			trace = ''
 		sassStream = sass opt.sassOpt
 		sassStream.on 'data', (file) ->
-			cssBase64img(file.contents.toString(), path.dirname(file.path), opt).then(
+			content = if opt.postcss then opt.postcss(file, 'scss') else file.contents.toString()
+			cssBase64img(content, path.dirname(file.path), opt).then(
 				(content) ->
 					file.contents = new Buffer [
 						trace + '<style type="text/css">'
@@ -95,7 +97,7 @@ compileCss = (file, opt) ->
 			trace = '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->' + EOL
 		else
 			trace = ''
-		content = if opt.postcss then opt.postcss(file) else file.contents.toString()
+		content = if opt.postcss then opt.postcss(file, 'css') else file.contents.toString()
 		cssBase64img(content, path.dirname(file.path), opt).then(
 			(content) ->
 				file.contents = new Buffer [
