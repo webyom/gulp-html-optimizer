@@ -58,7 +58,7 @@ compileLess = (file, opt) ->
 						next()
 					(err) ->
 						reject err
-				)
+				).done()
 		)
 		lessStream.on 'error', (e) ->
 			console.log 'gulp-html-optimizer Error:', e.message
@@ -85,7 +85,7 @@ compileSass = (file, opt) ->
 					resolve file
 				(err) ->
 					reject err
-			)
+			).done()
 		sassStream.on 'error', (e) ->
 			console.log 'gulp-html-optimizer Error:', e.message
 			console.log 'file:', file.path
@@ -108,7 +108,7 @@ compileCss = (file, opt) ->
 				resolve file
 			(err) ->
 				reject err
-		)
+		).done()
 
 compileCoffee = (file, plainId, opt) ->
 	Q.Promise (resolve, reject) ->
@@ -172,7 +172,7 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 				resolve file
 			(err) ->
 				reject err
-		)
+		).done()
 
 getParams = (params) ->
 	res = {}
@@ -313,7 +313,7 @@ compile = (file, baseFile, properties, opt) ->
 							resolve file
 					(err) ->
 						reject err
-				)
+				).done()
 			(err) ->
 				reject err
 		).done()
