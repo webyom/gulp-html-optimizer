@@ -14,9 +14,9 @@ EOL = '\n'
 
 htmlBase64img = (data, base, opt) ->
 	Q.Promise (resolve, reject) ->
-		if opt.base64img
+		if opt.generateDataUri
 			data = data.replace /<img\s([^>]*)src="([^"]+)"/ig, (full, extra, imgPath) ->
-				if imgPath.indexOf('.') is 0
+				if not (/^data:|\/\//i).test(imgPath) and imgPath.indexOf('?') is -1
 					'<img ' + extra + 'src="data:image/' + path.extname(imgPath).replace(/^\./, '') + ';base64,' + fs.readFileSync(path.resolve(base, imgPath), 'base64') + '"'
 				else
 					full
@@ -26,7 +26,7 @@ htmlBase64img = (data, base, opt) ->
 
 cssBase64img = (data, base, opt) ->
 	Q.Promise (resolve, reject) ->
-		if opt.base64img
+		if opt.generateDataUri
 			sus data,
 				base: base
 			.parse (err, parsed) ->
@@ -152,7 +152,7 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 			trace = '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->' + EOL
 		else
 			trace = ''
-		amdBundler.bundle(file, {baseFile: baseFile, baseDir: baseDir || path.dirname(baseFile.path), inline: true, postcss: opt.postcss, base64img: opt.base64img, beautifyTemplate: opt.beautifyTemplate, trace: opt.trace}).then(
+		amdBundler.bundle(file, {baseFile: baseFile, baseDir: baseDir || path.dirname(baseFile.path), inline: true, postcss: opt.postcss, generateDataUri: opt.generateDataUri, beautifyTemplate: opt.beautifyTemplate, trace: opt.trace}).then(
 			(file) ->
 				if params.render and (/\.tpl\.html\.js$/).test file.path
 					define = (id, deps, factory) ->

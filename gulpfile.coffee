@@ -13,7 +13,7 @@ gulp.task 'example', ->
 	htmlOptimizer = require './lib/index'
 	gulp.src('example/src/**/*.src.html')
 		.pipe htmlOptimizer
-			base64img: true
+			generateDataUri: true
 			beautifyTemplate: true
 			trace: true
 			postcss: (file, type) ->
