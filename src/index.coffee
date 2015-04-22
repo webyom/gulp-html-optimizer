@@ -152,7 +152,7 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 			trace = '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->' + EOL
 		else
 			trace = ''
-		amdBundler.bundle(file, {baseFile: baseFile, baseDir: baseDir || path.dirname(baseFile.path), inline: true, postcss: opt.postcss, generateDataUri: opt.generateDataUri, beautifyTemplate: opt.beautifyTemplate, trace: opt.trace}).then(
+		amdBundler.bundle(file, {baseFile: baseFile, baseDir: baseDir || path.dirname(baseFile.path), inline: true, riotOpt: opt.riotOpt, postcss: opt.postcss, generateDataUri: opt.generateDataUri, beautifyTemplate: opt.beautifyTemplate, trace: opt.trace}).then(
 			(file) ->
 				if params.render and (/\.tpl\.html\.js$/).test file.path
 					define = (id, deps, factory) ->
@@ -284,6 +284,10 @@ compile = (file, baseFile, properties, opt) ->
 				amdFilePath = amdFilePath
 			else if fs.existsSync amdFilePath + '.coffee'
 				amdFilePath = amdFilePath + '.coffee'
+			else if fs.existsSync amdFilePath + '.tag'
+				amdFilePath = amdFilePath + '.tag'
+			else if fs.existsSync amdFilePath + '.riot.html'
+				amdFilePath = amdFilePath + '.riot.html'
 			else
 				amdFilePath = amdFilePath + '.js'
 			amdFile = new gutil.File
