@@ -110,7 +110,7 @@ define('sub/mod-c', ['require', 'exports', 'module', '../mod-a', './tpl-a.tpl.ht
 	return {};
 });
 
-define('sub/tpl-a.tpl.html', ['require', 'exports', 'module', "../mod-b"], function(require, exports, module) {
+define('sub/tpl-a.tpl.html', ["require", "exports", "module", "../mod-b"], function(require, exports, module) {
     function $encodeHtml(str) {
         return (str + "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/`/g, "&#96;").replace(/'/g, "&#39;").replace(/"/g, "&quot;");
     }
@@ -130,7 +130,7 @@ define('sub/tpl-a.tpl.html', ['require', 'exports', 'module', "../mod-b"], funct
     };
 });
 
-define('tpl-a.tpl.html', ['require', 'exports', 'module'], function(require, exports, module) {
+define('tpl-a.tpl.html', [ "require", "exports", "module" ], function(require, exports, module) {
     function $encodeHtml(str) {
         return (str + "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/`/g, "&#96;").replace(/'/g, "&#39;").replace(/"/g, "&quot;");
     }
@@ -161,7 +161,7 @@ define('mod-b', ['require', 'exports', 'module', './sub/mod-c'], function(requir
 	return {};
 });
 
-define('inline-tpl-a.tpl.html', ['require', 'exports', 'module'], function(require, exports, module) {
+define('inline-tpl-a.tpl.html', [ "require", "exports", "module" ], function(require, exports, module) {
     function $encodeHtml(str) {
         return (str + "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/`/g, "&#96;").replace(/'/g, "&#39;").replace(/"/g, "&quot;");
     }
@@ -179,7 +179,7 @@ define('inline-tpl-a.tpl.html', ['require', 'exports', 'module'], function(requi
     };
 });
 
-define('inline-tpl-b.tpl.html', ['require', 'exports', 'module'], function(require, exports, module) {
+define('inline-tpl-b.tpl.html', [ "require", "exports", "module" ], function(require, exports, module) {
     function $encodeHtml(str) {
         return (str + "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/`/g, "&#96;").replace(/'/g, "&#39;").replace(/"/g, "&quot;");
     }
@@ -200,7 +200,7 @@ require.processDefQueue('', require.PAGE_BASE_URL, require.getBaseUrlConfig(requ
 </script>
 	<!-- trace:example/src/sub/tpl-a.tpl.html -->
 <script type="text/javascript">
-define('sub/tpl-a.tpl.html', ['require', 'exports', 'module', "../mod-b"], function(require, exports, module) {
+define('sub/tpl-a.tpl.html', ["require", "exports", "module", "../mod-b"], function(require, exports, module) {
     function $encodeHtml(str) {
         return (str + "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/`/g, "&#96;").replace(/'/g, "&#39;").replace(/"/g, "&quot;");
     }
@@ -243,7 +243,7 @@ define('mod-a', ['require', 'exports', 'module', './sub/mod-c', './tpl-a.tpl.htm
 	return {};
 });
 
-define('tpl-a.tpl.html', ['require', 'exports', 'module'], function(require, exports, module) {
+define('tpl-a.tpl.html', [ "require", "exports", "module" ], function(require, exports, module) {
     function $encodeHtml(str) {
         return (str + "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/`/g, "&#96;").replace(/'/g, "&#39;").replace(/"/g, "&quot;");
     }
@@ -283,7 +283,8 @@ require.processDefQueue('', require.PAGE_BASE_URL, require.getBaseUrlConfig(requ
 	<!-- trace:example/src/riot.tag -->
 <script type="text/javascript">
 /* trace:example/src/riot.tag */
-define('riot', ['require', 'exports', 'module', "jquery"], function(require, exports, module) {
+define('riot', ["require", "exports", "module", "riot", "jquery"], function(require, exports, module) {
+    riot = require("riot");
     /* trace:example/src/style.css */
     /* trace:example/src/style.scss */
     /* trace:example/src/style.less */
@@ -313,14 +314,15 @@ define('riot', ['require', 'exports', 'module', "jquery"], function(require, exp
         };
     });
     riot.tag("child", "", function(opts) {});
-    module.exports = "todo";
+    module.exports = "riot";
 });
 require.processDefQueue('', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));
 </script>
 	<!-- trace:example/src/riot-html.riot.html -->
 <script type="text/javascript">
 /* trace:example/src/riot-html.riot.html */
-define('riot-html', ['require', 'exports', 'module', "jquery"], function(require, exports, module) {
+define('riot-html', ["require", "exports", "module", "riot", "jquery"], function(require, exports, module) {
+    riot = require("riot");
     /* trace:example/src/style.css */
     /* trace:example/src/style.scss */
     /* trace:example/src/style.less */

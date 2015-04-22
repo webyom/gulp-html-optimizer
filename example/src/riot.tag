@@ -53,5 +53,3 @@ var $ = require('jquery');
 <child>
 
 </child>
-
-module.exports = 'todo';
