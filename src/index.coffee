@@ -8,7 +8,8 @@ gutil = require 'gulp-util'
 through = require 'through2'
 coffee = require 'gulp-coffee'
 amdBundler = require 'gulp-amd-bundler'
-sus = require 'sus'
+sus = require 'gulp-sus'
+gulpCssSprite = require 'gulp-img-css-sprite'
 
 EOL = '\n'
 
@@ -28,18 +29,29 @@ htmlBase64img = (data, base, opt) ->
 		else
 			resolve data
 
-cssBase64img = (data, base, opt) ->
+cssBase64img = (content, filePath, opt) ->
 	Q.Promise (resolve, reject) ->
 		if opt.generateDataUri
-			sus data,
-				base: base
-			.parse (err, parsed) ->
-				if err
+			sus.cssContent(content, filePath).then(
+				(content) ->
+					resolve content
+				(err) ->
 					reject err
-				else
-					resolve parsed.base() + EOL + parsed.sprites()
+			).done()
 		else
-			resolve data
+			resolve content
+
+cssSprite = (content, filePath, opt) ->
+	Q.Promise (resolve, reject) ->
+		if opt.cssSprite
+			gulpCssSprite.cssContent(content, filePath, opt.cssSprite).then(
+				(content) ->
+					resolve content
+				(err) ->
+					reject err
+			).done()
+		else
+			resolve content
 
 compileLess = (file, opt) ->
 	Q.Promise (resolve, reject) ->
@@ -51,7 +63,10 @@ compileLess = (file, opt) ->
 		lessStream.pipe through.obj(
 			(file, enc, next) ->
 				content = if opt.postcss then opt.postcss(file, 'less') else file.contents.toString()
-				cssBase64img(content, path.dirname(file.path), opt).then(
+				cssSprite(content, file.path, opt).then(
+					(content) ->
+						cssBase64img(content, file.path, opt)
+				).then(
 					(content) ->
 						file.contents = new Buffer [
 							trace + '<style type="text/css">'
@@ -79,7 +94,10 @@ compileSass = (file, opt) ->
 		sassStream = sass opt.sassOpt
 		sassStream.on 'data', (file) ->
 			content = if opt.postcss then opt.postcss(file, 'scss') else file.contents.toString()
-			cssBase64img(content, path.dirname(file.path), opt).then(
+			cssSprite(content, file.path, opt).then(
+				(content) ->
+					cssBase64img(content, file.path, opt)
+			).then(
 				(content) ->
 					file.contents = new Buffer [
 						trace + '<style type="text/css">'
@@ -102,7 +120,10 @@ compileCss = (file, opt) ->
 		else
 			trace = ''
 		content = if opt.postcss then opt.postcss(file, 'css') else file.contents.toString()
-		cssBase64img(content, path.dirname(file.path), opt).then(
+		cssSprite(content, file.path, opt).then(
+			(content) ->
+				cssBase64img(content, file.path, opt)
+		).then(
 			(content) ->
 				file.contents = new Buffer [
 					trace + '<style type="text/css">'
@@ -156,7 +177,7 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 			trace = '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->' + EOL
 		else
 			trace = ''
-		amdBundler.bundle(file, {baseFile: baseFile, baseDir: baseDir || path.dirname(baseFile.path), inline: true, riotOpt: opt.riotOpt, postcss: opt.postcss, generateDataUri: opt.generateDataUri, beautifyTemplate: opt.beautifyTemplate, trace: opt.trace}).then(
+		amdBundler.bundle(file, {baseFile: baseFile, baseDir: baseDir || path.dirname(baseFile.path), inline: true, riotOpt: opt.riotOpt, postcss: opt.postcss, generateDataUri: opt.generateDataUri, cssSprite: opt.cssSprite, beautifyTemplate: opt.beautifyTemplate, trace: opt.trace}).then(
 			(file) ->
 				if params.render and (/\.tpl\.html\.js$/).test file.path
 					define = (id, deps, factory) ->
@@ -208,7 +229,7 @@ compileExtendFile = (file, baseFile, extendFilePath, opt) ->
 					extendCache[cate][extendFile.path] = extendFile
 					resolve extendFile
 				(err) =>
-					@emit 'error', new gutil.PluginError('gulp-html-optimizer', err)
+					reject err
 			).done()
 
 extend = (file, baseFile, opt) ->
@@ -239,7 +260,7 @@ extend = (file, baseFile, opt) ->
 					file.contents = new Buffer content
 					resolve file
 				(err) =>
-					@emit 'error', new gutil.PluginError('gulp-html-optimizer', err)
+					reject err
 			).done()
 		else
 			resolve file
@@ -315,7 +336,7 @@ compile = (file, baseFile, properties, opt) ->
 								(file) ->
 									resolve file
 								(err) ->
-									@emit 'error', new gutil.PluginError('gulp-html-optimizer', err)
+									reject err
 							).done()
 						else
 							resolve file
