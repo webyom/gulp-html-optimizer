@@ -1,6 +1,6 @@
 {
   "name": "gulp-html-optimizer",
-  "version": "0.1.23",
+  "version": "0.1.24",
   "description": "Optimize html files.",
   "keywords": [
     "amd",
@@ -42,7 +42,7 @@
     "gulp-sus": "0.1.4",
     "gulp-coffee": "^2.0.1",
     "gulp-amd-bundler": "^0.1.20",
-    "gulp-img-css-sprite": "^0.1.4",
+    "gulp-img-css-sprite": "^0.1.5",
     "postcss-import": "^5.0.0",
     "postcss": "^4.0.3",
     "autoprefixer-core": "^5.1.0"
