@@ -177,7 +177,18 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 			trace = '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->' + EOL
 		else
 			trace = ''
-		amdBundler.bundle(file, {baseFile: baseFile, baseDir: baseDir || path.dirname(baseFile.path), inline: true, riotOpt: opt.riotOpt, postcss: opt.postcss, generateDataUri: opt.generateDataUri, cssSprite: opt.cssSprite, beautifyTemplate: opt.beautifyTemplate, trace: opt.trace}).then(
+		amdBundler.bundle(file, {
+			baseFile: baseFile, 
+			baseDir: baseDir || path.dirname(baseFile.path), 
+			inline: true, 
+			reactOpt: opt.reactOpt, 
+			riotOpt: opt.riotOpt, 
+			postcss: opt.postcss, 
+			generateDataUri: opt.generateDataUri, 
+			cssSprite: opt.cssSprite, 
+			beautifyTemplate: opt.beautifyTemplate, 
+			trace: opt.trace
+		}).then(
 			(file) ->
 				if params.render and (/\.tpl\.html\.js$/).test file.path
 					define = (id, deps, factory) ->
