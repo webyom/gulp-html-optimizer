@@ -178,15 +178,16 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 		else
 			trace = ''
 		amdBundler.bundle(file, {
-			baseFile: baseFile, 
-			baseDir: baseDir || path.dirname(baseFile.path), 
-			inline: true, 
-			reactOpt: opt.reactOpt, 
-			riotOpt: opt.riotOpt, 
-			postcss: opt.postcss, 
-			generateDataUri: opt.generateDataUri, 
-			cssSprite: opt.cssSprite, 
-			beautifyTemplate: opt.beautifyTemplate, 
+			baseFile: baseFile
+			baseDir: baseDir || path.dirname(baseFile.path)
+			inline: true
+			findVendor: opt.findVendor
+			reactOpt: opt.reactOpt
+			riotOpt: opt.riotOpt
+			postcss: opt.postcss
+			generateDataUri: opt.generateDataUri
+			cssSprite: opt.cssSprite
+			beautifyTemplate: opt.beautifyTemplate
 			trace: opt.trace
 		}).then(
 			(file) ->
