@@ -199,12 +199,38 @@ define(function(require) {
 });
 </script>
 	<!-- trace:example/src/mod-b.js -->
-<script type="text/javascript">
+<script type="text/html" id="mod-b">
 define(function(require) {
 	var modC = require('./sub/mod-c');
 
 	return {};
 });
+</script>
+	<!-- trace:example/src/mod-c.es6 -->
+<script type="text/html" id="mod-c">
+"use strict";
+var ModC = function() {
+  function ModC() {}
+  return ($traceurRuntime.createClass)(ModC, {}, {});
+}();
+module.exports = ModC;
+//# sourceURL=<compile-source>
+
+</script>
+	<!-- trace:example/src/mod-c.es6 -->
+<script type="text/javascript">
+/* trace:example/src/mod-c.es6 */
+define('mod-c', ['require', 'exports', 'module'], function(require, exports, module) {
+"use strict";
+var ModC = function() {
+  function ModC() {}
+  return ($traceurRuntime.createClass)(ModC, {}, {});
+}();
+module.exports = ModC;
+//# sourceURL=<compile-source>
+
+});
+require.processDefQueue('', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));
 </script>
 	<!-- trace:example/src/index.js -->
 <script type="text/javascript">
@@ -325,7 +351,7 @@ define('inline-tpl-b.tpl.html', [ "require", "exports", "module" ], function(req
 require.processDefQueue('', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));
 </script>
 	<!-- trace:example/src/sub/tpl-a.tpl.html -->
-<script type="text/javascript">
+<script type="text/html" id="tpl-a">
 define('sub/tpl-a.tpl.html', ["require", "exports", "module", "../mod-b"], function(require, exports, module) {
     function $encodeHtml(str) {
         return (str + "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/`/g, "&#96;").replace(/'/g, "&#39;").replace(/"/g, "&quot;");

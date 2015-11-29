@@ -6,6 +6,7 @@ less = require 'gulp-less'
 sass = require 'gulp-sass'
 gutil = require 'gulp-util'
 through = require 'through2'
+traceur = require 'traceur'
 coffee = require 'gulp-coffee'
 amdBundler = require 'gulp-amd-bundler'
 sus = require 'gulp-sus'
@@ -134,6 +135,19 @@ compileCss = (file, opt) ->
 			(err) ->
 				reject err
 		).done()
+
+compileEs6 = (file, plainId, opt) ->
+	Q.Promise (resolve, reject) ->
+		if opt.trace
+			trace = '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->' + EOL
+		else
+			trace = ''
+		file.contents = new Buffer [
+			if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script type="text/javascript">'
+			traceur.compile file.contents.toString(), opt.traceurOpt
+			'</script>'
+		].join EOL
+		resolve file
 
 compileCoffee = (file, plainId, opt) ->
 	Q.Promise (resolve, reject) ->
@@ -288,7 +302,7 @@ compile = (file, baseFile, properties, opt) ->
 		content = content.replace(/<!--\s*require-base-dir\s+(['"])([^'"]+)\1\s*-->/mg, (full, quote, base) ->
 			baseDir = base
 			''
-		).replace(/<!--\s*include\s+(['"])([^'"]+)\.(less|scss|coffee|css|js|inc\.[^'"]+)\1\s*(.*?)\s*-->/mg, (full, quote, incName, ext, params) ->
+		).replace(/<!--\s*include\s+(['"])([^'"]+)\.(less|scss|es6|coffee|css|js|inc\.[^'"]+)\1\s*(.*?)\s*-->/mg, (full, quote, incName, ext, params) ->
 			params = getParams params
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
 			incFilePath = path.resolve fileDir, incName + '.' + ext
@@ -302,6 +316,8 @@ compile = (file, baseFile, properties, opt) ->
 				asyncList.push compileLess(incFile, opt)
 			else if ext is 'scss'
 				asyncList.push compileSass(incFile, opt)
+			else if ext is 'es6'
+				asyncList.push compileEs6(incFile, params.plainId, opt)
 			else if ext is 'coffee'
 				asyncList.push compileCoffee(incFile, params.plainId, opt)
 			else if ext is 'css'
@@ -320,6 +336,8 @@ compile = (file, baseFile, properties, opt) ->
 			amdFilePath = path.resolve fileDir, amdName
 			if fs.existsSync amdFilePath
 				amdFilePath = amdFilePath
+			else if fs.existsSync amdFilePath + '.es6'
+				amdFilePath = amdFilePath + '.es6'
 			else if fs.existsSync amdFilePath + '.coffee'
 				amdFilePath = amdFilePath + '.coffee'
 			else if fs.existsSync amdFilePath + '.tag'
