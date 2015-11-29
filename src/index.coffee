@@ -182,6 +182,7 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 			baseDir: baseDir || path.dirname(baseFile.path)
 			inline: true
 			findVendor: opt.findVendor
+			traceurOpt: opt.traceurOpt
 			reactOpt: opt.reactOpt
 			riotOpt: opt.riotOpt
 			postcss: opt.postcss
