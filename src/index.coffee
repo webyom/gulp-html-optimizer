@@ -193,7 +193,7 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 			trace = ''
 		amdBundler.bundle(file, {
 			baseFile: baseFile
-			baseDir: baseDir || path.dirname(baseFile.path)
+			baseDir: baseDir
 			inline: true
 			findVendor: opt.findVendor
 			traceurOpt: opt.traceurOpt
