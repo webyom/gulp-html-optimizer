@@ -1,6 +1,6 @@
 {
   "name": "gulp-html-optimizer",
-  "version": "0.1.46",
+  "version": "0.1.47",
   "description": "Optimize html files.",
   "keywords": [
     "amd",
@@ -33,11 +33,11 @@
   "scripts": {},
   "dependencies": {
     "autoprefixer-core": "^5.1.0",
-    "gulp-amd-bundler": "^0.1.42",
+    "gulp-amd-bundler": "^0.1.43",
     "gulp-coffee": "^2.0.1",
     "gulp-img-css-sprite": "^0.1.5",
-    "gulp-less": "^1.3.1",
-    "gulp-sass": "^2.0.4",
+    "gulp-less": "^3.0.5",
+    "gulp-sass": "^2.1.1",
     "gulp-sus": "0.1.4",
     "gulp-util": "^2.2.19",
     "lodash": "^2.4.1",
