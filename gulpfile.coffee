@@ -34,6 +34,11 @@ gulp.task 'example', ['sprite'], ->
 					.process file.contents.toString(),
 						from: file.path
 				res.css
+			isRelativeDependency: (dep, isRelative) ->
+				if dep is './mod-b'
+					false
+				else
+					isRelative
 		.pipe gulp.dest('example/dest')
 
 gulp.task 'default', ['compile']

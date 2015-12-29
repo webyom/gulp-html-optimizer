@@ -280,6 +280,13 @@ define('./sub/tpl-a.tpl.html', ["require", "exports", "module", "../mod-b"], fun
     };
 });
 
+/* trace:example/src/mod-b.js */
+define('./mod-b', ['require', 'exports', 'module', './sub/mod-c'], function(require) {
+	var modC = require('./sub/mod-c');
+
+	return {};
+});
+
 define('./tpl-a.tpl.html', [ "require", "exports", "module" ], function(require, exports, module) {
     function $encodeHtml(str) {
         return (str + "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/`/g, "&#96;").replace(/'/g, "&#39;").replace(/"/g, "&quot;");
@@ -304,13 +311,6 @@ define('./tpl-a.tpl.html', [ "require", "exports", "module" ], function(require,
         }
         return _$out_.join("");
     };
-});
-
-/* trace:example/src/mod-b.js */
-define('./mod-b', ['require', 'exports', 'module', './sub/mod-c'], function(require) {
-	var modC = require('./sub/mod-c');
-
-	return {};
 });
 
 define('./inline-tpl-a.tpl.html', [ "require", "exports", "module" ], function(require, exports, module) {

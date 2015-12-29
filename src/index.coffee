@@ -204,6 +204,7 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 			cssSprite: opt.cssSprite
 			beautifyTemplate: opt.beautifyTemplate
 			trace: opt.trace
+			isRelativeDependency: opt.isRelativeDependency
 		}).then(
 			(file) ->
 				if params.render and (/\.tpl\.html\.js$/).test file.path
