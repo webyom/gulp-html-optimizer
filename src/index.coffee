@@ -216,12 +216,28 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 					factory null, exp, null
 					file.contents = new Buffer trace + exp.render(params)
 				else
-					file.contents = new Buffer [
-						if params.plainId then trace + '<script type="text/html" id="' + params.plainId + '">' else trace + '<script type="text/javascript">'
-						file.contents.toString()
-						if baseDir or (/\brequire-plugin\b/).test(file.path) then 'require.processDefQueue();' else 'require.processDefQueue(\'\', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));'
-						'</script>'
-					].join EOL
+					processDefQueue = if baseDir or (/\brequire-plugin\b/).test(file.path) then 'require.processDefQueue();' else 'require.processDefQueue(\'\', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));'
+					if params.out
+						if params.out in ['yes', 'true', '1']
+							outPath = file.path.slice(0, file.path.lastIndexOf path.extname file.path) + '.js'
+						else
+							outPath = path.resolve path.dirname(baseFile.path), params.out
+						src = params.src
+						if not src
+							src = path.relative path.dirname(baseFile.path), file.path
+							src = src.slice(0, src.lastIndexOf path.extname src) + '.js'
+						fs.writeFileSync outPath, [
+							file.contents.toString()
+							processDefQueue
+						].join EOL
+						file.contents = new Buffer trace + '<script type="text/javascript" src="' + src + '"></script>'
+					else
+						file.contents = new Buffer [
+							if params.plainId then trace + '<script type="text/html" id="' + params.plainId + '">' else trace + '<script type="text/javascript">'
+							file.contents.toString()
+							processDefQueue
+							'</script>'
+						].join EOL
 				resolve file
 			(err) ->
 				reject err
