@@ -226,10 +226,13 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 						if not src
 							src = path.relative path.dirname(baseFile.path), file.path
 							src = src.slice(0, src.lastIndexOf path.extname src) + '.js'
-						fs.writeFileSync outPath, [
-							file.contents.toString()
-							processDefQueue
-						].join EOL
+						if file.contents.toString().slice(-processDefQueue.length) is processDefQueue
+							fs.writeFileSync outPath, file.contents.toString()
+						else
+							fs.writeFileSync outPath, [
+								file.contents.toString()
+								processDefQueue
+							].join EOL
 						file.contents = new Buffer trace + '<script type="text/javascript" src="' + src + '"></script>'
 					else
 						file.contents = new Buffer [
