@@ -350,7 +350,7 @@ define('./riot', ["require", "exports", "module", "riot", "jquery"], function(re
             item.done = !item.done;
             return true;
         };
-    }, "{ }");
+    });
     riot.tag2("child", "", "", "", function(opts) {});
     module.exports = "riot";
 });
@@ -388,7 +388,7 @@ define('./riot-html', ["require", "exports", "module", "riot", "jquery"], functi
             item.done = !item.done;
             return true;
         };
-    }, "{ }");
+    });
     riot.tag2("child", "", "", "", function(opts) {});
     module.exports = "todo";
 });
