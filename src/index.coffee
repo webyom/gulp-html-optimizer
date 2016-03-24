@@ -216,7 +216,12 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 					factory null, exp, null
 					file.contents = new Buffer trace + exp.render(params)
 				else
-					processDefQueue = if baseDir or (/\brequire-plugin\b/).test(file.path) then 'require.processDefQueue();' else 'require.processDefQueue(\'\', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));'
+					if params.process in ['no', 'false']
+						processDefQueue = ''
+					else if baseDir or (/\brequire-plugin\b/).test(file.path)
+						processDefQueue = 'require.processDefQueue();'
+					else
+						processDefQueue = 'require.processDefQueue(\'\', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));'
 					if params.out
 						if params.out in ['yes', 'true', '1']
 							outPath = file.path.slice(0, file.path.lastIndexOf path.extname file.path) + '.js'
@@ -226,7 +231,7 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 						if not src
 							src = path.relative path.dirname(baseFile.path), file.path
 							src = src.slice(0, src.lastIndexOf path.extname src) + '.js'
-						if file.contents.toString().slice(-processDefQueue.length) is processDefQueue
+						if not processDefQueue or file.contents.toString().slice(-processDefQueue.length) is processDefQueue
 							fs.writeFileSync outPath, file.contents.toString()
 						else
 							fs.writeFileSync outPath, [
