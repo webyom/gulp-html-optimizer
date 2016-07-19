@@ -341,7 +341,6 @@ compile = (file, baseFile, properties, opt) ->
 			params = getParams params
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
 			amdFilePath = path.resolve fileDir, amdName
-			console.log(111, amdFilePath)
 			if fs.existsSync amdFilePath
 				amdFilePath = amdFilePath
 			else if fs.existsSync amdFilePath + '.coffee'
