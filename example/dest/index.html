@@ -209,8 +209,10 @@ define(function(require) {
 	<!-- trace:example/src/mod-c.json -->
 <script type="text/html" id="mod-c">
 /* trace:example/src/mod-c.json */
-define('./mod-c.json', ['require', 'exports', 'module'], {
+define('./mod-c.json', ['require', 'exports', 'module'], function(require, exports, module) {
+module.exports = {
   "name": "webyom"
+};
 });
 require.processDefQueue('', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));
 </script>
