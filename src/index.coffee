@@ -182,7 +182,6 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 			baseDir: baseDir
 			inline: true
 			findVendor: opt.findVendor
-			riotOpt: opt.riotOpt
 			postcss: opt.postcss
 			generateDataUri: opt.generateDataUri
 			cssSprite: opt.cssSprite
@@ -345,10 +344,6 @@ compile = (file, baseFile, properties, opt) ->
 				amdFilePath = amdFilePath
 			else if fs.existsSync amdFilePath + '.coffee'
 				amdFilePath = amdFilePath + '.coffee'
-			else if fs.existsSync amdFilePath + '.tag'
-				amdFilePath = amdFilePath + '.tag'
-			else if fs.existsSync amdFilePath + '.riot.html'
-				amdFilePath = amdFilePath + '.riot.html'
 			else
 				amdFilePath = amdFilePath + '.js'
 			amdFile = new gutil.File
