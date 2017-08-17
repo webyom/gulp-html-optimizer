@@ -188,7 +188,7 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 			beautifyTemplate: opt.beautifyTemplate
 			trace: opt.trace
 			isRelativeDependency: opt.isRelativeDependency
-			cssModuleClassNameLength: opt.cssModuleClassNameLength
+			cssModuleClassNameGenerator: opt.cssModuleClassNameGenerator
 			cssModuleClassNamePlaceholder: opt.cssModuleClassNamePlaceholder
 		}).then(
 			(file) ->
