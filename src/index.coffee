@@ -188,6 +188,8 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 			beautifyTemplate: opt.beautifyTemplate
 			trace: opt.trace
 			isRelativeDependency: opt.isRelativeDependency
+			cssModuleClassNameLength: opt.cssModuleClassNameLength
+			cssModuleClassNamePlaceholder: opt.cssModuleClassNamePlaceholder
 		}).then(
 			(file) ->
 				if params.render and (/\.tpl\.html\.js$/).test file.path
