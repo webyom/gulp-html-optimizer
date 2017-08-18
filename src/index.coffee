@@ -190,6 +190,7 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 			isRelativeDependency: opt.isRelativeDependency
 			cssModuleClassNameGenerator: opt.cssModuleClassNameGenerator
 			cssModuleClassNamePlaceholder: opt.cssModuleClassNamePlaceholder
+			useExternalCssModuleHelper: opt.useExternalCssModuleHelper
 		}).then(
 			(file) ->
 				if params.render and (/\.tpl\.html\.js$/).test file.path
