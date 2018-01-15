@@ -4,7 +4,8 @@ fs = require 'fs'
 path = require 'path'
 less = require 'gulp-less'
 sass = require 'gulp-sass'
-gutil = require 'gulp-util'
+Vinyl = require 'vinyl'
+PluginError = require 'plugin-error'
 through = require 'through2'
 coffee = require 'gulp-coffee'
 amdBundler = require 'gulp-amd-bundler'
@@ -251,7 +252,7 @@ compileExtendFile = (file, baseFile, extendFilePath, opt) ->
 		cate = file._lang_ or 'misc'
 		extendFile = extendCache[cate]?[extendFilePath]
 		if not extendFile
-			extendFile = new gutil.File
+			extendFile = new Vinyl
 				base: file.base
 				cwd: file.cwd
 				path: extendFilePath
@@ -317,7 +318,7 @@ compile = (file, baseFile, properties, opt) ->
 			params = getParams params
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
 			incFilePath = path.resolve fileDir, incName + '.' + ext
-			incFile = new gutil.File
+			incFile = new Vinyl
 				base: file.base
 				cwd: file.cwd
 				path: incFilePath
@@ -349,7 +350,7 @@ compile = (file, baseFile, properties, opt) ->
 				amdFilePath = amdFilePath + '.coffee'
 			else
 				amdFilePath = amdFilePath + '.js'
-			amdFile = new gutil.File
+			amdFile = new Vinyl
 				base: file.base
 				cwd: file.cwd
 				path: amdFilePath
@@ -397,8 +398,8 @@ replaceProperties = (content, properties) ->
 
 module.exports = (opt = {}) ->
 	through.obj (file, enc, next) ->
-		return @emit 'error', new gutil.PluginError('gulp-html-optimizer', 'File can\'t be null') if file.isNull()
-		return @emit 'error', new gutil.PluginError('gulp-html-optimizer', 'Streams not supported') if file.isStream()
+		return @emit 'error', new PluginError('gulp-html-optimizer', 'File can\'t be null') if file.isNull()
+		return @emit 'error', new PluginError('gulp-html-optimizer', 'Streams not supported') if file.isStream()
 		compile(file, file, null, opt).then(
 			(file) =>
 				if (/\.src\..+$/).test file.path
@@ -414,5 +415,5 @@ module.exports = (opt = {}) ->
 				@push file
 				next()
 			(err) =>
-				@emit 'error', new gutil.PluginError('gulp-html-optimizer', err)
+				@emit 'error', new PluginError('gulp-html-optimizer', err)
 		).done()
