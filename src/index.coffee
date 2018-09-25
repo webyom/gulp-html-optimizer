@@ -182,7 +182,6 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 			baseFile: baseFile
 			baseDir: baseDir
 			inline: true
-			findVendor: opt.findVendor
 			postcss: opt.postcss
 			generateDataUri: opt.generateDataUri
 			cssSprite: opt.cssSprite
