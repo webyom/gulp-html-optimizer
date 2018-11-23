@@ -263,8 +263,9 @@ compileExtendFile = (file, baseFile, extendFilePath, opt) ->
 			compile(extendFile, baseFile, null, opt).then(
 				(extendFile) =>
 					extendFile._compiled_ = true
-					extendCache[cate] ?= {}
-					extendCache[cate][extendFile.path] = extendFile
+					if opt.cacheExtend isnt false
+						extendCache[cate] ?= {}
+						extendCache[cate][extendFile.path] = extendFile
 					resolve extendFile
 				(err) =>
 					reject err
@@ -339,7 +340,8 @@ compile = (file, baseFile, properties, opt) ->
 					incFile.contents = new Buffer trace + incFile.contents.toString()
 				asyncList.push compile(incFile, baseFile, params, opt)
 			asyncMark
-		).replace(/<!--\s*require\s+(['"])([^'"]+)\1\s*(.*?)\s*-->/mg, (full, quote, amdName, params) ->
+		)
+		content = content.replace(/<!--\s*require\s+(['"])([^'"]+)\1\s*(.*?)\s*-->/mg, (full, quote, amdName, params) ->
 			params = getParams params
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
 			amdFilePath = path.resolve fileDir, amdName
@@ -356,7 +358,7 @@ compile = (file, baseFile, properties, opt) ->
 				contents: fs.readFileSync amdFilePath
 			asyncList.push compileAmd(amdFile, baseFile, params.baseDir && path.resolve(fileDir, params.baseDir) || baseDir && path.resolve(fileDir, baseDir) || opt.requireBaseDir && path.resolve(process.cwd(), opt.requireBaseDir), params, opt)
 			asyncMark
-		)
+		) if opt.processRequire isnt false
 		Q.all(asyncList).then(
 			(results) ->
 				results.forEach (incFile, i) ->
