@@ -215,8 +215,7 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 							outPath = path.resolve path.dirname(baseFile.path), params.out
 						src = params.src
 						if not src
-							src = path.relative path.dirname(baseFile.path), file.path
-							src = src.slice(0, src.lastIndexOf path.extname src) + '.js'
+							src = path.relative (baseDir || path.dirname(baseFile.path)), file.path
 						if not processDefQueue or file.contents.toString().slice(-processDefQueue.length) is processDefQueue
 							fs.writeFileSync outPath, file.contents.toString()
 						else
