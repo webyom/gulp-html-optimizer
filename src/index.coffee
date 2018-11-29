@@ -63,22 +63,32 @@ compileLess = (file, opt) ->
 		lessStream = less opt.lessOpt
 		lessStream.pipe through.obj(
 			(file, enc, next) ->
-				content = if opt.postcss then opt.postcss(file, 'less') else file.contents.toString()
-				cssSprite(content, file.path, opt).then(
-					(content) ->
-						cssBase64img(content, file.path, opt)
+				Q.Promise((resolve, reject) ->
+					if opt.postcss
+						opt.postcss(file, 'less').then resolve, reject
+					else
+						resolve({css: file.contents.toString()})
 				).then(
-					(content) ->
-						file.contents = new Buffer [
-							trace + '<style type="text/css">'
-								content
-							'</style>'
-						].join EOL
-						resolve file
-						next()
+					(res) ->
+						content = res.css
+						cssSprite(content, file.path, opt).then(
+							(content) ->
+								cssBase64img(content, file.path, opt)
+						).then(
+							(content) ->
+								file.contents = new Buffer [
+									trace + '<style type="text/css">'
+										content
+									'</style>'
+								].join EOL
+								resolve file
+								next()
+							(err) ->
+								reject err
+						).done()
 					(err) ->
 						reject err
-				).done()
+				)
 		)
 		lessStream.on 'error', (e) ->
 			console.log 'gulp-html-optimizer Error:', e.message
@@ -94,21 +104,31 @@ compileSass = (file, opt) ->
 			trace = ''
 		sassStream = sass opt.sassOpt
 		sassStream.on 'data', (file) ->
-			content = if opt.postcss then opt.postcss(file, 'scss') else file.contents.toString()
-			cssSprite(content, file.path, opt).then(
-				(content) ->
-					cssBase64img(content, file.path, opt)
+			Q.Promise((resolve, reject) ->
+				if opt.postcss
+					opt.postcss(file, 'scss').then resolve, reject
+				else
+					resolve({css: file.contents.toString()})
 			).then(
-				(content) ->
-					file.contents = new Buffer [
-						trace + '<style type="text/css">'
-							content
-						'</style>'
-					].join EOL
-					resolve file
+				(res) ->
+					content = res.css
+					cssSprite(content, file.path, opt).then(
+						(content) ->
+							cssBase64img(content, file.path, opt)
+					).then(
+						(content) ->
+							file.contents = new Buffer [
+								trace + '<style type="text/css">'
+									content
+								'</style>'
+							].join EOL
+							resolve file
+						(err) ->
+							reject err
+					).done()
 				(err) ->
 					reject err
-			).done()
+			)
 		sassStream.on 'error', (e) ->
 			console.log 'gulp-html-optimizer Error:', e.message
 			console.log 'file:', file.path
@@ -120,21 +140,31 @@ compileCss = (file, opt) ->
 			trace = '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->' + EOL
 		else
 			trace = ''
-		content = if opt.postcss then opt.postcss(file, 'css') else file.contents.toString()
-		cssSprite(content, file.path, opt).then(
-			(content) ->
-				cssBase64img(content, file.path, opt)
+		Q.Promise((resolve, reject) ->
+			if opt.postcss
+				opt.postcss(file, 'css').then resolve, reject
+			else
+				resolve({css: file.contents.toString()})
 		).then(
-			(content) ->
-				file.contents = new Buffer [
-					trace + '<style type="text/css">'
-						content
-					'</style>'
-				].join EOL
-				resolve file
+			(res) ->
+				content = res.css
+				cssSprite(content, file.path, opt).then(
+					(content) ->
+						cssBase64img(content, file.path, opt)
+				).then(
+					(content) ->
+						file.contents = new Buffer [
+							trace + '<style type="text/css">'
+								content
+							'</style>'
+						].join EOL
+						resolve file
+					(err) ->
+						reject err
+				).done()
 			(err) ->
 				reject err
-		).done()
+		)
 
 compileCoffee = (file, plainId, opt) ->
 	Q.Promise (resolve, reject) ->

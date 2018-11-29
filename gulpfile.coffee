@@ -2,7 +2,7 @@ gulp = require 'gulp'
 coffee = require 'gulp-coffee'
 postcss = require 'postcss'
 postcssImport = require 'postcss-import'
-autoprefixer = require 'autoprefixer-core'
+autoprefixer = require 'autoprefixer'
 imgCssSprite = require 'gulp-img-css-sprite'
 
 gulp.task 'compile', ->
@@ -28,12 +28,9 @@ gulp.task 'example', ['sprite'], ->
 			beautifyTemplate: true
 			trace: true
 			postcss: (file, type) ->
-				res = postcss()
-					.use postcssImport()
-					.use autoprefixer browsers: ['last 2 version']
+				postcss([postcssImport(), autoprefixer browsers: ['last 2 version']])
 					.process file.contents.toString(),
 						from: file.path
-				res.css
 			isRelativeDependency: (dep, isRelative) ->
 				if dep is './mod-b'
 					false
