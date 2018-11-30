@@ -229,9 +229,10 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 					define = (id, deps, factory) ->
 						factory
 					factory = null
-					eval 'factory = ' + file.contents.toString()
+					eval 'factory = ' + file.contents.toString().replace(/[\s\S]*\bdefine\(/, 'define(')
 					exp = {}
-					factory null, exp, null
+					factory () ->, 
+					exp, null
 					file.contents = new Buffer trace + exp.render(params)
 				else
 					if params.process in ['no', 'false']
