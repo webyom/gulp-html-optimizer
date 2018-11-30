@@ -216,6 +216,8 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 			generateDataUri: opt.generateDataUri
 			cssSprite: opt.cssSprite
 			beautifyTemplate: opt.beautifyTemplate
+			strictModeTemplate: opt.strictModeTemplate
+			babelTemplate: opt.babelTemplate
 			trace: opt.trace
 			isRelativeDependency: opt.isRelativeDependency
 			cssModuleClassNameGenerator: opt.cssModuleClassNameGenerator
