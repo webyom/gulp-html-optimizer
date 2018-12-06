@@ -2,6 +2,7 @@ define(['require', 'exports', 'module', './mod-a'], function(require, exports, m
 	var modB = require('./mod-b');
 	var tplA = require('./inline-tpl-a.tpl.html');
 	var tplB = require('./inline-tpl-b.tpl.html');
+	var readme = require('./readme.md');
 
 	return {};
 });

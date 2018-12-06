@@ -1,8 +1,9 @@
 /* trace:example/src/index.js */
-define('./index', ['require', 'exports', 'module', './mod-a', './mod-b', './inline-tpl-a.tpl.html', './inline-tpl-b.tpl.html'], function(require, exports, module, modA) {
+define('./index', ['require', 'exports', 'module', './mod-a', './mod-b', './inline-tpl-a.tpl.html', './inline-tpl-b.tpl.html', './readme.md'], function(require, exports, module, modA) {
 	var modB = require('./mod-b');
 	var tplA = require('./inline-tpl-a.tpl.html');
 	var tplB = require('./inline-tpl-b.tpl.html');
+	var readme = require('./readme.md');
 
 	return {};
 });
@@ -115,5 +116,10 @@ define('./inline-tpl-b.tpl.html', [ "require", "exports", "module" ], function(r
         return _$out_;
     }
     exports.render = render;
+});
+
+/* trace:example/src/readme.md */
+define('./readme.md', ['require', 'exports', 'module'], function(require, exports, module) {
+module.exports = '<h1 id="readme">readme</h1> <h2 id="list">list</h2> <ul> <li>item1</li> <li>item2</li> </ul> <pre><code class="language-javascript">const React = require(&#39;react&#39;);</code></pre> ';
 });
 require.processDefQueue('', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));

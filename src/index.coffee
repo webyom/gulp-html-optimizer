@@ -219,6 +219,7 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 			strictModeTemplate: opt.strictModeTemplate
 			babelTemplate: opt.babelTemplate
 			trace: opt.trace
+			markedOptions: opt.markedOptions
 			isRelativeDependency: opt.isRelativeDependency
 			cssModuleClassNameGenerator: opt.cssModuleClassNameGenerator
 			cssModuleClassNamePlaceholder: opt.cssModuleClassNamePlaceholder
