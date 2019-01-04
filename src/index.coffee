@@ -377,7 +377,11 @@ compile = (file, baseFile, properties, opt) ->
 		content = content.replace(/<!--\s*require\s+(['"])([^'"]+)\1\s*(.*?)\s*-->/mg, (full, quote, amdName, params) ->
 			params = getParams params
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
-			amdFilePath = path.resolve fileDir, amdName
+			resolvedBaseDir = params.baseDir && path.resolve(fileDir, params.baseDir) || baseDir && path.resolve(fileDir, baseDir) || opt.requireBaseDir && path.resolve(process.cwd(), opt.requireBaseDir)
+			if resolvedBaseDir and amdName.indexOf('.') isnt 0
+				amdFilePath = path.join resolvedBaseDir, amdName
+			else
+				amdFilePath = path.resolve fileDir, amdName
 			if fs.existsSync amdFilePath
 				amdFilePath = amdFilePath
 			else if fs.existsSync amdFilePath + '.coffee'
@@ -389,7 +393,7 @@ compile = (file, baseFile, properties, opt) ->
 				cwd: file.cwd
 				path: amdFilePath
 				contents: fs.readFileSync amdFilePath
-			asyncList.push compileAmd(amdFile, baseFile, params.baseDir && path.resolve(fileDir, params.baseDir) || baseDir && path.resolve(fileDir, baseDir) || opt.requireBaseDir && path.resolve(process.cwd(), opt.requireBaseDir), params, opt)
+			asyncList.push compileAmd(amdFile, baseFile, resolvedBaseDir, params, opt)
 			asyncMark
 		) if opt.processRequire isnt false
 		Q.all(asyncList).then(
