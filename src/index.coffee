@@ -226,15 +226,21 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 			useExternalCssModuleHelper: opt.useExternalCssModuleHelper
 		}).then(
 			(file) ->
-				if params.render and (/\.tpl\.html\.js$/).test file.path
+				if params.render
 					define = (id, deps, factory) ->
 						factory
 					factory = null
 					eval 'factory = ' + file.contents.toString().replace(/[\s\S]*\bdefine\(/, 'define(')
 					exp = {}
-					factory () ->, 
-					exp, null
-					file.contents = new Buffer trace + exp.render(params)
+					mod = {}
+					factory () ->,
+					exp, mod
+					if (/\.tpl\.html\.js$/).test file.path
+						file.contents = new Buffer trace + exp.render(params)
+					else if (/\.md\.js$/).test file.path
+						file.contents = new Buffer trace + mod.exports
+					else
+						throw new PluginError('gulp-html-optimizer', 'Unsupported inline render file type: ' + file.path)
 				else
 					if params.process in ['no', 'false']
 						processDefQueue = ''
