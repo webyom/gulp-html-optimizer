@@ -382,6 +382,7 @@ compile = (file, baseFile, properties, opt) ->
 		)
 		content = content.replace(/<!--\s*require\s+(['"])([^'"]+)\1\s*(.*?)\s*-->/mg, (full, quote, amdName, params) ->
 			params = getParams params
+			return full if opt.processRequire is 'render' and not params.render
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
 			resolvedBaseDir = params.baseDir && path.resolve(fileDir, params.baseDir) || baseDir && path.resolve(fileDir, baseDir) || opt.requireBaseDir && path.resolve(process.cwd(), opt.requireBaseDir)
 			if resolvedBaseDir and amdName.indexOf('.') isnt 0
