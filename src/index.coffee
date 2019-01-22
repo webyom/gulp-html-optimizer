@@ -202,6 +202,17 @@ compileJs = (file, plainId, opt) ->
 		].join EOL
 		resolve file
 
+compileBabel = (file, attrLeft, attrRight, opt) ->
+	Q.Promise (resolve, reject) ->
+		opt.babel(file).then (file) ->
+			file.contents = new Buffer [
+				'<script ' + attrLeft + 'type="text/javascript"' + attrRight + '>'
+				file.contents.toString()
+				'</script>'
+			].join EOL
+			resolve file
+		, reject
+
 compileAmd = (file, baseFile, baseDir, params, opt) ->
 	Q.Promise (resolve, reject) ->
 		if opt.trace
@@ -217,7 +228,7 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 			cssSprite: opt.cssSprite
 			beautifyTemplate: opt.beautifyTemplate
 			strictModeTemplate: opt.strictModeTemplate
-			babelTemplate: opt.babelTemplate
+			babel: opt.babel
 			trace: opt.trace
 			markedOptions: opt.markedOptions
 			isRelativeDependency: opt.isRelativeDependency
@@ -353,7 +364,19 @@ compile = (file, baseFile, properties, opt) ->
 		content = content.replace(/<!--\s*require-base-dir\s+(['"])([^'"]+)\1\s*-->/mg, (full, quote, base) ->
 			baseDir = base
 			''
-		).replace(/<!--\s*include\s+(['"])([^'"]+)\.(less|scss|es6|coffee|css|js|inc\.[^'"]+)\1\s*(.*?)\s*-->/mg, (full, quote, incName, ext, params) ->
+		)
+		content = content.replace(/<script ([^>]*)type="text\/babel"([^>]*)>\s*([\s\S]*?)\s*<\/script>/mg, (full, attrLeft, attrRight, script) ->
+			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
+			babelFilePath = path.resolve fileDir, '__inline_babel_' + asyncList.length + '__.js'
+			babelFile = new Vinyl
+				base: file.base
+				cwd: file.cwd
+				path: babelFilePath
+				contents: new Buffer script
+			asyncList.push compileBabel(babelFile, attrLeft, attrRight, opt)
+			asyncMark
+		) if opt.babel
+		content = content.replace(/<!--\s*include\s+(['"])([^'"]+)\.(less|scss|es6|coffee|css|js|inc\.[^'"]+)\1\s*(.*?)\s*-->/mg, (full, quote, incName, ext, params) ->
 			params = getParams params
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
 			incFilePath = path.resolve fileDir, incName + '.' + ext
