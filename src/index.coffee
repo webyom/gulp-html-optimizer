@@ -241,7 +241,11 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 					define = (id, deps, factory) ->
 						factory
 					factory = null
-					eval 'factory = ' + file.contents.toString().replace(/[\s\S]*\bdefine\(/, 'define(')
+					try
+						eval 'factory = ' + file.contents.toString().replace(/[\s\S]*\bdefine\(/, 'define(')
+					catch err
+						console.log file.path
+						throw err
 					exp = {}
 					mod = {}
 					factory () ->,
