@@ -1,10 +1,10 @@
 {
   "name": "gulp-html-optimizer",
-  "version": "1.30.0",
+  "version": "1.31.0",
   "description": "Optimize html files.",
   "keywords": [
-    "amd",
-    "dependency",
+    "html",
+    "optimize",
     "gulpplugin"
   ],
   "homepage": "https://github.com/webyom/gulp-html-optimizer",
