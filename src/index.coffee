@@ -271,6 +271,8 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 						src = params.src
 						if not src
 							src = path.relative (baseDir || path.dirname(baseFile.path)), file.path
+						if baseDir and src.indexOf('.') isnt 0
+							src = '/' + src
 						if not processDefQueue or file.contents.toString().slice(-processDefQueue.length) is processDefQueue
 							fs.writeFileSync outPath, file.contents.toString()
 						else
