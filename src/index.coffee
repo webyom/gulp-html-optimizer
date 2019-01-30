@@ -411,7 +411,7 @@ compile = (file, baseFile, properties, opt) ->
 		)
 		content = content.replace(/<!--\s*require\s+(['"])([^'"]+)\1\s*(.*?)\s*-->/mg, (full, quote, amdName, params) ->
 			params = getParams params
-			return full if opt.optimizeRequire is false and not params.alwaysOptimize
+			return full if opt.optimizeRequire is 'ifAlways' and not params.alwaysOptimize
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
 			resolvedBaseDir = params.baseDir && path.resolve(fileDir, params.baseDir) || baseDir && path.resolve(fileDir, baseDir) || opt.requireBaseDir && path.resolve(process.cwd(), opt.requireBaseDir)
 			if resolvedBaseDir and amdName.indexOf('.') isnt 0
@@ -431,7 +431,7 @@ compile = (file, baseFile, properties, opt) ->
 				contents: fs.readFileSync amdFilePath
 			asyncList.push compileAmd(amdFile, baseFile, resolvedBaseDir, params, opt)
 			asyncMark
-		)
+		) if opt.optimizeRequire isnt false
 		Q.all(asyncList).then(
 			(results) ->
 				results.forEach (incFile, i) ->
