@@ -11,8 +11,31 @@ coffee = require 'gulp-coffee'
 amdBundler = require 'gulp-amd-bundler'
 sus = require 'gulp-sus'
 gulpCssSprite = require 'gulp-img-css-sprite'
+CleanCSS = require 'clean-css'
+UglifyJS = require 'uglify-es'
 
 EOL = '\n'
+
+minifyJS = (content, file, opt) ->
+	content = content.toString()
+	if opt.minifyJS
+		res = UglifyJS.minify content, _.extend({}, opt.minifyJS)
+		if res.error
+			res.error.filename = file.path
+			console.log res.error
+			throw new PluginError('gulp-html-optimizer', 'minifyJS error with file: ' + file.path) 
+		content = res.code
+	content
+
+minifyCSS = (content, file, opt) ->
+	content = content.toString()
+	if opt.minifyCSS
+		res = new CleanCSS(_.extend({}, opt.minifyCSS)).minify res
+		if res.errors and res.errors.length
+			console.log res.errors
+			throw new PluginError('gulp-html-optimizer', 'minifyCSS error with file: ' + file.path) 
+		content = res.styles
+	content
 
 htmlBase64img = (data, base, opt) ->
 	Q.Promise (resolve, reject) ->
@@ -78,7 +101,7 @@ compileLess = (file, opt) ->
 							(content) ->
 								file.contents = new Buffer [
 									trace + '<style type="text/css">'
-										content
+										minifyCSS content, file, opt
 									'</style>'
 								].join EOL
 								resolve file
@@ -119,7 +142,7 @@ compileSass = (file, opt) ->
 						(content) ->
 							file.contents = new Buffer [
 								trace + '<style type="text/css">'
-									content
+									minifyCSS content, file, opt
 								'</style>'
 							].join EOL
 							resolve file
@@ -155,7 +178,7 @@ compileCss = (file, opt) ->
 					(content) ->
 						file.contents = new Buffer [
 							trace + '<style type="text/css">'
-								content
+								minifyCSS content, file, opt
 							'</style>'
 						].join EOL
 						resolve file
@@ -177,7 +200,7 @@ compileCoffee = (file, plainId, opt) ->
 			(file, enc, next) ->
 				file.contents = new Buffer [
 					if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script type="text/javascript">'
-					file.contents.toString()
+					minifyJS file.contents.toString(), file, opt
 					'</script>'
 				].join EOL
 				resolve file
@@ -197,7 +220,7 @@ compileJs = (file, plainId, opt) ->
 			trace = ''
 		file.contents = new Buffer [
 			if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script type="text/javascript">'
-			file.contents.toString()
+			minifyJS file.contents.toString(), file, opt
 			'</script>'
 		].join EOL
 		resolve file
@@ -207,7 +230,7 @@ compileBabel = (file, attrLeft, attrRight, opt) ->
 		opt.babel(file).then (file) ->
 			file.contents = new Buffer [
 				'<script ' + attrLeft + 'type="text/javascript"' + attrRight + '>'
-				file.contents.toString()
+				minifyJS file.contents.toString(), file, opt
 				'</script>'
 			].join EOL
 			resolve file
@@ -284,7 +307,7 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 					else
 						file.contents = new Buffer [
 							if params.plainId then trace + '<script type="text/html" id="' + params.plainId + '">' else trace + '<script type="text/javascript">'
-							file.contents.toString()
+							minifyJS file.contents.toString(), file, opt
 							processDefQueue
 							'</script>'
 						].join EOL
@@ -367,7 +390,7 @@ compile = (file, baseFile, properties, opt) ->
 		asyncList = []
 		fileDir = path.dirname file.path
 		baseDir = ''
-		content = content.replace(/<!--\s*require-base-dir\s+(['"])([^'"]+)\1\s*-->/mg, (full, quote, base) ->
+		content = content.replace(/<!--\s*base-dir\s+(['"])([^'"]+)\1\s*-->/mg, (full, quote, base) ->
 			baseDir = base
 			''
 		)
@@ -385,7 +408,11 @@ compile = (file, baseFile, properties, opt) ->
 		content = content.replace(/<!--\s*include\s+(['"])([^'"]+)\.(less|scss|es6|coffee|css|js|inc\.[^'"]+)\1\s*(.*?)\s*-->/mg, (full, quote, incName, ext, params) ->
 			params = getParams params
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
-			incFilePath = path.resolve fileDir, incName + '.' + ext
+			resolvedBaseDir = params.baseDir && path.resolve(fileDir, params.baseDir) || baseDir && path.resolve(fileDir, baseDir) || opt.baseDir && path.resolve(process.cwd(), opt.baseDir)
+			if resolvedBaseDir and incName.indexOf('.') isnt 0
+				incFilePath = path.join resolvedBaseDir, incName + '.' + ext
+			else
+				incFilePath = path.resolve fileDir, incName + '.' + ext
 			incFile = new Vinyl
 				base: file.base
 				cwd: file.cwd
@@ -413,7 +440,7 @@ compile = (file, baseFile, properties, opt) ->
 			params = getParams params
 			return full if opt.optimizeRequire is 'ifAlways' and not params.alwaysOptimize
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
-			resolvedBaseDir = params.baseDir && path.resolve(fileDir, params.baseDir) || baseDir && path.resolve(fileDir, baseDir) || opt.requireBaseDir && path.resolve(process.cwd(), opt.requireBaseDir)
+			resolvedBaseDir = params.baseDir && path.resolve(fileDir, params.baseDir) || baseDir && path.resolve(fileDir, baseDir) || opt.baseDir && path.resolve(process.cwd(), opt.baseDir)
 			if resolvedBaseDir and amdName.indexOf('.') isnt 0
 				amdFilePath = path.join resolvedBaseDir, amdName
 			else
