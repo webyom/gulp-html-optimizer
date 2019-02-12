@@ -405,7 +405,7 @@ compile = (file, baseFile, properties, opt) ->
 			asyncList.push compileBabel(babelFile, attrLeft, attrRight, opt)
 			asyncMark
 		) if opt.babel
-		content = content.replace(/<!--\s*include\s+(['"])([^'"]+)\.(less|scss|es6|coffee|css|js|inc\.[^'"]+)\1\s*(.*?)\s*-->/mg, (full, quote, incName, ext, params) ->
+		content = content.replace(/<!--\s*include\s+(['"])([^'"]+)\.(less|scss|es6|coffee|css|js|inc\.html)\1\s*(.*?)\s*-->/mg, (full, quote, incName, ext, params) ->
 			params = getParams params
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
 			resolvedBaseDir = params.baseDir && path.resolve(fileDir, params.baseDir) || baseDir && path.resolve(fileDir, baseDir) || opt.baseDir && path.resolve(process.cwd(), opt.baseDir)
@@ -467,7 +467,7 @@ compile = (file, baseFile, properties, opt) ->
 				htmlBase64img(content, path.dirname(file.path), opt).then(
 					(content) ->
 						file.contents = new Buffer content
-						if not (/\.inc\./).test(file.path)
+						if not (/\.inc\.html$/).test(file.path)
 							extend(file, baseFile, opt).then(
 								(file) ->
 									resolve file
