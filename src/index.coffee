@@ -308,8 +308,7 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 					else
 						file.contents = new Buffer [
 							if params.plainId then trace + '<script type="text/html" id="' + params.plainId + '">' else trace + '<script type="text/javascript">'
-							minifyJS file.contents.toString(), file, opt
-							processDefQueue
+							minifyJS file.contents.toString() + EOL + processDefQueue, file, opt
 							'</script>'
 						].join EOL
 				resolve file
