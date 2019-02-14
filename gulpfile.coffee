@@ -26,6 +26,7 @@ gulp.task 'example', ['sprite'], ->
 					url: '//webyom.org'
 					dir: 'example/src'
 			beautifyTemplate: true
+			conservativeCollapseTemplate: true
 			trace: true
 			postcss: (file, type) ->
 				postcss([postcssImport(), autoprefixer browsers: ['last 2 version']])

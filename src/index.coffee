@@ -251,6 +251,7 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 			cssSprite: opt.cssSprite
 			beautifyTemplate: opt.beautifyTemplate
 			strictModeTemplate: opt.strictModeTemplate
+			conservativeCollapseTemplate: opt.conservativeCollapseTemplate
 			babel: opt.babel
 			trace: opt.trace
 			markedOptions: opt.markedOptions
