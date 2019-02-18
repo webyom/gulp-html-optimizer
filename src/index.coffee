@@ -100,7 +100,7 @@ compileLess = (file, opt) ->
 						).then(
 							(content) ->
 								file.contents = new Buffer [
-									trace + '<style type="text/css">'
+									trace + '<style>'
 										minifyCSS content, file, opt
 									'</style>'
 								].join EOL
@@ -141,7 +141,7 @@ compileSass = (file, opt) ->
 					).then(
 						(content) ->
 							file.contents = new Buffer [
-								trace + '<style type="text/css">'
+								trace + '<style>'
 									minifyCSS content, file, opt
 								'</style>'
 							].join EOL
@@ -177,7 +177,7 @@ compileCss = (file, opt) ->
 				).then(
 					(content) ->
 						file.contents = new Buffer [
-							trace + '<style type="text/css">'
+							trace + '<style>'
 								minifyCSS content, file, opt
 							'</style>'
 						].join EOL
@@ -199,7 +199,7 @@ compileCoffee = (file, plainId, opt) ->
 		coffeeStream.pipe through.obj(
 			(file, enc, next) ->
 				file.contents = new Buffer [
-					if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script type="text/javascript">'
+					if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script>'
 					minifyJS file.contents.toString(), file, opt
 					'</script>'
 				].join EOL
@@ -219,7 +219,7 @@ compileJs = (file, plainId, opt) ->
 		else
 			trace = ''
 		file.contents = new Buffer [
-			if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script type="text/javascript">'
+			if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script>'
 			minifyJS file.contents.toString(), file, opt
 			'</script>'
 		].join EOL
@@ -228,8 +228,10 @@ compileJs = (file, plainId, opt) ->
 compileBabel = (file, attrLeft, attrRight, opt) ->
 	Q.Promise (resolve, reject) ->
 		opt.babel(file).then (file) ->
+			attrLeft = ' ' + attrLeft if attrLeft
+			attrRight = ' ' + attrRight if attrRight
 			file.contents = new Buffer [
-				'<script ' + attrLeft + 'type="text/javascript"' + attrRight + '>'
+				'<script' + attrLeft + attrRight + '>'
 				minifyJS file.contents.toString(), file, opt
 				'</script>'
 			].join EOL
@@ -304,10 +306,10 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 								file.contents.toString()
 								processDefQueue
 							].join EOL
-						file.contents = new Buffer trace + '<script type="text/javascript" src="' + src + '"></script>'
+						file.contents = new Buffer trace + '<script src="' + src + '"></script>'
 					else
 						file.contents = new Buffer [
-							if params.plainId then trace + '<script type="text/html" id="' + params.plainId + '">' else trace + '<script type="text/javascript">'
+							if params.plainId then trace + '<script type="text/html" id="' + params.plainId + '">' else trace + '<script>'
 							minifyJS file.contents.toString() + EOL + processDefQueue, file, opt
 							'</script>'
 						].join EOL
@@ -402,7 +404,7 @@ compile = (file, baseFile, properties, opt) ->
 				cwd: file.cwd
 				path: babelFilePath
 				contents: new Buffer script
-			asyncList.push compileBabel(babelFile, attrLeft, attrRight, opt)
+			asyncList.push compileBabel(babelFile, attrLeft.trim(), attrRight.trim(), opt)
 			asyncMark
 		) if opt.babel
 		content = content.replace(/<!--\s*include\s+(['"])([^'"]+)\.(less|scss|es6|coffee|css|js|inc\.html)\1\s*(.*?)\s*-->/mg, (full, quote, incName, ext, params) ->
