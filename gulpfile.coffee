@@ -28,6 +28,9 @@ gulp.task 'example', ['sprite'], ->
 			beautifyTemplate: true
 			conservativeCollapseTemplate: false
 			trace: true
+			interpolate:
+				open: '${'
+				close: '}'
 			postcss: (file, type) ->
 				postcss([postcssImport(), autoprefixer browsers: ['last 2 version']])
 					.process file.contents.toString(),

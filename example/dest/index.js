@@ -120,6 +120,6 @@ define('./inline-tpl-b.tpl.html', [ "require", "exports", "module" ], function(r
 
 /* trace:example/src/readme.md */
 define('./readme.md', ['require', 'exports', 'module'], function(require, exports, module) {
-module.exports = '<h1 id="readme">readme</h1><h2 id="list">list</h2><ul><li>item1</li><li>item2</li></ul><pre><code class="language-javascript">const React = require(&#39;react&#39;);</code></pre>';
+module.exports = '<h1 id="readme">readme</h1><h2 id="list">list</h2><ul><li>item1</li><li>item2</li></ul><p>${name} {hello} ${hello}</p><pre><code class="language-javascript">const React = require(&#39;react&#39;);</code></pre>';
 });
 require.processDefQueue('', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));

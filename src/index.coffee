@@ -16,6 +16,56 @@ UglifyJS = require 'uglify-es'
 
 EOL = '\n'
 
+getDefaultValue = (defaultValue) -> 
+	if typeof defaultValue is 'function'
+		return defaultValue()
+	defaultValue
+
+safeAccess = (obj, props, defaultValue, canBeNull) ->
+	return getDefaultValue(defaultValue) if not obj 
+	if typeof obj[props] isnt 'undefined'
+		return getDefaultValue(defaultValue) if obj[props] is null and not canBeNull
+		return obj[props]
+	props = props.replace /\[(\w+)\]/g, '.$1'
+	props = props.replace /^\./, ''
+	propsArr = props.split '.'
+	for k, i in propsArr
+		if obj and typeof obj is 'object' and Object.prototype.hasOwnProperty.call(obj, k) and (obj[k] isnt null or canBeNull)
+			obj = obj[k]
+		else
+			return getDefaultValue defaultValue
+	obj
+
+interpolateTemplate = (tpl, data, opt = {}) -> 
+	if not opt.open or not opt.close
+		opt.open = '{{'
+		opt.close = '}}'
+	throw new Error('gulp-html-optimizer: open tag and close tag must not be same!') if opt.open is opt.close
+	return tpl
+		.split(opt.open)
+		.map((part, i) -> 
+			return part if i is 0
+			parts = part.split opt.close
+			len = parts.length
+			item = ''
+			_getDefaultValue = () -> 
+				if typeof opt.defaultValue is 'function'
+					opt.defaultValue item.trim()
+				else if typeof opt.defaultValue isnt 'undefined'
+					String opt.defaultValue
+				else
+					opt.open + item + opt.close
+			if len is 1
+				opt.open + part
+			else if len is 2
+				item = parts[0]
+				safeAccess(data, item.trim(), _getDefaultValue) + parts[1]
+			else
+				item = parts.shift()
+				safeAccess(data, item.trim(), _getDefaultValue) + parts.join(opt.close)
+		)
+		.join ''
+
 minifyJS = (content, file, opt) ->
 	content = content.toString()
 	if opt.minifyJS
@@ -279,7 +329,7 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 					if (/\.tpl\.html\.js$/).test file.path
 						file.contents = new Buffer trace + exp.render(params)
 					else if (/\.md\.js$/).test file.path
-						file.contents = new Buffer trace + mod.exports
+						file.contents = new Buffer trace + interpolateTemplate(mod.exports, params, opt.interpolate)
 					else
 						throw new PluginError('gulp-html-optimizer', 'Unsupported inline render file type: ' + file.path)
 				else
