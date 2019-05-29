@@ -1,11 +1,11 @@
 <!-- extend "./index.base.html" -->
 
 <!-- section "content" -->
-	<!-- include "./mod-a.js" out="yes" -->
+	<!-- include "./mod-a.js" process="yes" -->
 	<!-- include "./mod-b.js" plainId="mod-b" -->
-	<!-- require "./mod-c.json" plainId="mod-c" -->
+	<!-- require "./mod-c.json" plainId="mod-c" out="no" process="yes" -->
 	<!-- require "./readme.md" render="yes" name="gary" -->
-	<!-- require "./index" out="../dest/index.js" -->
-	<!-- require "./sub/tpl-a.tpl.html" plainId="tpl-a" -->
-	<!-- require "./sub/mod-d" -->
+	<!-- require "./index" out="../dest/index.js" process="yes" -->
+	<!-- require "./sub/tpl-a.tpl.html" plainId="tpl-a" out="no" process="yes" -->
+	<!-- require "./sub/mod-d" out="no" process="yes" -->
 <!-- /section -->

@@ -333,17 +333,24 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 					else
 						throw new PluginError('gulp-html-optimizer', 'Unsupported inline render file type: ' + file.path)
 				else
-					if params.process in ['no', 'false']
-						processDefQueue = ''
-					else if baseDir or (/\brequire-plugin\b/).test(file.path)
-						processDefQueue = 'require.processDefQueue();'
-					else
-						processDefQueue = 'require.processDefQueue(\'\', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));'
-					if params.out
-						if params.out in ['yes', 'true', '1']
-							outPath = file.path.slice(0, file.path.lastIndexOf path.extname file.path) + '.js'
+					if params.process in ['yes', 'true', '1']
+						if baseDir or (/\brequire-plugin\b/).test(file.path)
+							processDefQueue = 'require.processDefQueue();'
 						else
+							processDefQueue = 'require.processDefQueue(\'\', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));'
+					else
+						processDefQueue = ''
+					if params.out in ['no', 'false', '0']
+						file.contents = new Buffer [
+							if params.plainId then trace + '<script type="text/html" id="' + params.plainId + '">' else trace + '<script>'
+							minifyJS file.contents.toString() + EOL + processDefQueue, file, opt
+							'</script>'
+						].join EOL
+					else
+						if params.out and params.out not in ['yes', 'true', '1']
 							outPath = path.resolve path.dirname(baseFile.path), params.out
+						else
+							outPath = file.path.slice(0, file.path.lastIndexOf path.extname file.path) + '.js'
 						src = params.src
 						if not src
 							src = path.relative (baseDir || path.dirname(baseFile.path)), file.path
@@ -357,12 +364,6 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 								processDefQueue
 							].join EOL
 						file.contents = new Buffer trace + '<script src="' + src + '"></script>'
-					else
-						file.contents = new Buffer [
-							if params.plainId then trace + '<script type="text/html" id="' + params.plainId + '">' else trace + '<script>'
-							minifyJS file.contents.toString() + EOL + processDefQueue, file, opt
-							'</script>'
-						].join EOL
 				resolve file
 			(err) ->
 				reject err
