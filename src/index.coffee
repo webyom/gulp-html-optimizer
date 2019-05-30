@@ -340,14 +340,14 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 							processDefQueue = 'require.processDefQueue(\'\', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));'
 					else
 						processDefQueue = ''
-					if params.out in ['no', 'false', '0']
+					if params.inline in ['yes', 'true', '1']
 						file.contents = new Buffer [
 							if params.plainId then trace + '<script type="text/html" id="' + params.plainId + '">' else trace + '<script>'
 							minifyJS file.contents.toString() + EOL + processDefQueue, file, opt
 							'</script>'
 						].join EOL
 					else
-						if params.out and params.out not in ['yes', 'true', '1']
+						if params.out
 							outPath = path.resolve path.dirname(baseFile.path), params.out
 						else
 							outPath = file.path.slice(0, file.path.lastIndexOf path.extname file.path) + '.js'
