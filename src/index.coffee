@@ -333,13 +333,14 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 					else
 						throw new PluginError('gulp-html-optimizer', 'Unsupported inline render file type: ' + file.path)
 				else
-					if params.process in ['no', 'false', '0']
-						processDefQueue = ''
-					else if baseDir or (/\brequire-plugin\b/).test(file.path)
-						processDefQueue = 'require.processDefQueue();'
+					if params.process is 'yes'
+						if baseDir or (/\brequire-plugin\b/).test(file.path)
+							processDefQueue = 'require.processDefQueue();'
+						else
+							processDefQueue = 'require.processDefQueue(\'\', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));'
 					else
-						processDefQueue = 'require.processDefQueue(\'\', require.PAGE_BASE_URL, require.getBaseUrlConfig(require.PAGE_BASE_URL));'
-					if params.inline in ['yes', 'true', '1']
+						processDefQueue = ''
+					if params.inline is 'yes'
 						file.contents = new Buffer [
 							if params.plainId then trace + '<script type="text/html" id="' + params.plainId + '">' else trace + '<script>'
 							minifyJS file.contents.toString() + EOL + processDefQueue, file, opt
