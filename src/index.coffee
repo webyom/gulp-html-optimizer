@@ -80,7 +80,7 @@ minifyJS = (content, file, opt) ->
 minifyCSS = (content, file, opt) ->
 	content = content.toString()
 	if opt.minifyCSS
-		res = new CleanCSS(_.extend({}, opt.minifyCSS)).minify res
+		res = new CleanCSS(_.extend({}, opt.minifyCSS)).minify content
 		if res.errors and res.errors.length
 			console.log res.errors
 			throw new PluginError('gulp-html-optimizer', 'minifyCSS error with file: ' + file.path) 
