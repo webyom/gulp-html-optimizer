@@ -458,7 +458,7 @@ compile = (file, baseFile, properties, opt) ->
 			asyncList.push compileBabel(babelFile, attrLeft.trim(), attrRight.trim(), opt)
 			asyncMark
 		) if opt.babel
-		content = content.replace(/<!--\s*include\s+(['"])([^'"]+)\.(less|scss|es6|coffee|css|js|inc\.html)\1\s*(.*?)\s*-->/mg, (full, quote, incName, ext, params) ->
+		content = content.replace(/<!--\s*include\s+(['"])([^'"]+)\.(less|scss|es6|coffee|css|js|inc\.html)\1\s*([\s\S]*?)\s*-->/mg, (full, quote, incName, ext, params) ->
 			params = getParams params
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
 			resolvedBaseDir = params.baseDir && path.resolve(fileDir, params.baseDir) || baseDir && path.resolve(fileDir, baseDir) || opt.baseDir && path.resolve(process.cwd(), opt.baseDir)
@@ -489,7 +489,7 @@ compile = (file, baseFile, properties, opt) ->
 				asyncList.push compile(incFile, baseFile, params, opt)
 			asyncMark
 		)
-		content = content.replace(/<!--\s*require\s+(['"])([^'"]+)\1\s*(.*?)\s*-->/mg, (full, quote, amdName, params) ->
+		content = content.replace(/<!--\s*require\s+(['"])([^'"]+)\1\s*([\s\S]*?)\s*-->/mg, (full, quote, amdName, params) ->
 			params = getParams params
 			return full if opt.optimizeRequire is 'ifAlways' and not params.alwaysOptimize
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
