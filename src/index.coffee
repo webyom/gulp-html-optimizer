@@ -369,7 +369,15 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 				reject err
 		).done()
 
-getParams = (params) ->
+getParams = (params, file) ->
+	params = params.trim()
+	if params.indexOf('{') is 0
+		try
+			res = JSON.parse params
+			return res
+		catch e
+			console.log e
+			throw new PluginError('gulp-html-optimizer', 'JSON.parse error with file: ' + file.path + '. ' + params) 
 	res = {}
 	return res if not params
 	r = /([\w\-]+)=(['"])([^'"]*)\2/g
@@ -459,7 +467,7 @@ compile = (file, baseFile, properties, opt) ->
 			asyncMark
 		) if opt.babel
 		content = content.replace(/<!--\s*include\s+(['"])([^'"]+)\.(less|scss|es6|coffee|css|js|inc\.html)\1\s*([\s\S]*?)\s*-->/mg, (full, quote, incName, ext, params) ->
-			params = getParams params
+			params = getParams params, file
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
 			resolvedBaseDir = params.baseDir && path.resolve(fileDir, params.baseDir) || baseDir && path.resolve(fileDir, baseDir) || opt.baseDir && path.resolve(process.cwd(), opt.baseDir)
 			if resolvedBaseDir and incName.indexOf('.') isnt 0
@@ -490,7 +498,7 @@ compile = (file, baseFile, properties, opt) ->
 			asyncMark
 		)
 		content = content.replace(/<!--\s*require\s+(['"])([^'"]+)\1\s*([\s\S]*?)\s*-->/mg, (full, quote, amdName, params) ->
-			params = getParams params
+			params = getParams params, file
 			return full if opt.optimizeRequire is 'ifAlways' and not params.alwaysOptimize
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
 			resolvedBaseDir = params.baseDir && path.resolve(fileDir, params.baseDir) || baseDir && path.resolve(fileDir, baseDir) || opt.baseDir && path.resolve(process.cwd(), opt.baseDir)
