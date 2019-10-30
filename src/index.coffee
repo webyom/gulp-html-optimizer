@@ -389,7 +389,7 @@ extendCache = {}
 compileExtendFile = (file, baseFile, extendFilePath, opt) ->
 	Q.Promise (resolve, reject) ->
 		cate = file._lang_ or 'misc'
-		extendFile = extendCache[cate]?[extendFilePath]
+		extendFile = if opt.enableCache is false then null else extendCache[cate]?[extendFilePath]
 		if not extendFile
 			extendFile = new Vinyl
 				base: file.base
