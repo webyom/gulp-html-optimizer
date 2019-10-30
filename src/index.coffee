@@ -138,9 +138,11 @@ compileLess = (file, opt) ->
 			(file, enc, next) ->
 				Q.Promise((resolve, reject) ->
 					if opt.postcss
-						opt.postcss(file, 'less').then resolve, reject
+						opt.postcss(file, 'css').then (file) ->
+							resolve css: file.contents.toString()
+						, reject
 					else
-						resolve({css: file.contents.toString()})
+						resolve css: file.contents.toString()
 				).then(
 					(res) ->
 						content = res.css
@@ -179,9 +181,11 @@ compileSass = (file, opt) ->
 		sassStream.on 'data', (file) ->
 			Q.Promise((resolve, reject) ->
 				if opt.postcss
-					opt.postcss(file, 'scss').then resolve, reject
+					opt.postcss(file, 'css').then (file) ->
+						resolve css: file.contents.toString()
+					, reject
 				else
-					resolve({css: file.contents.toString()})
+					resolve css: file.contents.toString()
 			).then(
 				(res) ->
 					content = res.css
@@ -215,9 +219,11 @@ compileCss = (file, opt) ->
 			trace = ''
 		Q.Promise((resolve, reject) ->
 			if opt.postcss
-				opt.postcss(file, 'css').then resolve, reject
+				opt.postcss(file, 'css').then (file) ->
+					resolve css: file.contents.toString()
+				, reject
 			else
-				resolve({css: file.contents.toString()})
+				resolve css: file.contents.toString()
 		).then(
 			(res) ->
 				content = res.css
