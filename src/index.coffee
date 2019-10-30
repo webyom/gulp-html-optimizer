@@ -268,12 +268,22 @@ compileJs = (file, plainId, opt) ->
 			trace = '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->' + EOL
 		else
 			trace = ''
-		file.contents = new Buffer [
-			if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script>'
-			minifyJS file.contents.toString(), file, opt
-			'</script>'
-		].join EOL
-		resolve file
+		if opt.babel
+			opt.babel(file).then (file) ->
+				file.contents = new Buffer [
+					if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script>'
+					minifyJS file.contents.toString(), file, opt
+					'</script>'
+				].join EOL
+				resolve file
+			, reject
+		else
+			file.contents = new Buffer [
+				if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script>'
+				minifyJS file.contents.toString(), file, opt
+				'</script>'
+			].join EOL
+			resolve file
 
 compileBabel = (file, attrLeft, attrRight, opt) ->
 	Q.Promise (resolve, reject) ->
