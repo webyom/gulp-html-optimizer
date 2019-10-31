@@ -32,9 +32,12 @@ gulp.task 'example', ['sprite'], ->
 				open: '${'
 				close: '}'
 			postcss: (file, type) ->
-				postcss([postcssImport(), autoprefixer browsers: ['last 2 version']])
+				postcss([postcssImport(), autoprefixer()])
 					.process file.contents.toString(),
 						from: file.path
+					.then (res) ->
+						file.contents = Buffer.from res.css
+						file
 			isRelativeDependency: (dep, isRelative) ->
 				if dep is './mod-b'
 					false

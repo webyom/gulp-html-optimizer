@@ -1586,10 +1586,10 @@ graceful-fs@~1.2.0:
   resolved "https://registry.yarnpkg.com/graceful-readlink/-/graceful-readlink-1.0.1.tgz#4cafad76bc62f02fa039b2f94e9a3dd3a391a725"
   integrity sha1-TK+tdrxi8C+gObL5Tpo906ORpyU=
 
-gulp-amd-bundler@^1.29.0:
-  version "1.29.0"
-  resolved "https://registry.yarnpkg.com/gulp-amd-bundler/-/gulp-amd-bundler-1.29.0.tgz#3647d2cbde7e8ae4541fba47b66f0028955de29e"
-  integrity sha512-Q4yrPEU0nHZ3z9baKZZvAWCK+dB8UrMmgmH+vYOyN2qNqUlZd/PFcKdazNChG1tXXMFg8BDIhz+4lKoNCsEFfQ==
+gulp-amd-bundler@^1.30.0:
+  version "1.30.0"
+  resolved "https://registry.yarnpkg.com/gulp-amd-bundler/-/gulp-amd-bundler-1.30.0.tgz#c6ccd6652b6e0b57d786568f656c294cd5cdcf62"
+  integrity sha512-aPqiKZqs86iaM+1roBNg0+3shS0SnwzUBDIbL1DGUHCamcZBgiMtxHOhTL7E7YHiL/YWa/r2hGmdvny2BPW8uw==
   dependencies:
     async "^0.9.0"
     clean-css "^3.4.8"
@@ -1597,7 +1597,7 @@ gulp-amd-bundler@^1.29.0:
     gulp-amd-dependency "^1.10.0"
     gulp-coffee "^2.0.1"
     gulp-img-css-sprite "^0.2.0"
-    gulp-mt2amd "^1.15.0"
+    gulp-mt2amd "^1.16.0"
     mkdirp "^0.5.1"
     plugin-error "^1.0.0"
     q "^1.0.1"
@@ -1668,10 +1668,10 @@ gulp-minifier@^1.1.0:
     uglify-es "^3.3.6"
     vinyl "^2.1.0"
 
-gulp-mt2amd@^1.15.0:
-  version "1.15.0"
-  resolved "https://registry.yarnpkg.com/gulp-mt2amd/-/gulp-mt2amd-1.15.0.tgz#cf0fa762da511e49fc2012e1b7fc06b99c642c07"
-  integrity sha512-sIPVzmK75roapOpLyNQPRWLL7YPawCj1ku/Iu7OdsjmaG7mYi9lnVaMNQVLyk78ClHA9I2mBqieWfEScdfm+0A==
+gulp-mt2amd@^1.16.0:
+  version "1.16.0"
+  resolved "https://registry.yarnpkg.com/gulp-mt2amd/-/gulp-mt2amd-1.16.0.tgz#1fd9dcf29d21c0cd68ffb3cc7141dc2ee763c7fb"
+  integrity sha512-NZzhzebikH+fDFJHxsQmqRtiAXao30yAsA1mZmo4Ie2QZbBKy7M8D3s+mDKf0RK6WsvMaW9vB0pV9Z549ur2Zw==
   dependencies:
     chalk "^2.3.0"
     gulp-img-css-sprite "^0.2.0"
@@ -4126,6 +4126,11 @@ typedarray@^0.0.6, typedarray@~0.0.5:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
+
+typescript@^3.6.4:
+  version "3.6.4"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.6.4.tgz#b18752bb3792bc1a0281335f7f6ebf1bbfc5b91d"
+  integrity sha512-unoCll1+l+YK4i4F8f22TaNVPRHcD9PA3yCuZ8g5e0qGqlVlJ/8FSateOLLSagn+Yg5+ZwuPkL8LFUc0Jcvksg==
 
 uglify-es@^3.3.6:
   version "3.3.9"

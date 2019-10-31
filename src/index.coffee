@@ -13,6 +13,7 @@ sus = require 'gulp-sus'
 gulpCssSprite = require 'gulp-img-css-sprite'
 CleanCSS = require 'clean-css'
 UglifyJS = require 'uglify-es'
+ts = require 'typescript'
 
 EOL = '\n'
 
@@ -151,7 +152,7 @@ compileLess = (file, opt) ->
 								cssBase64img(content, file.path, opt)
 						).then(
 							(content) ->
-								file.contents = new Buffer [
+								file.contents = Buffer.from [
 									trace + '<style>'
 										minifyCSS content, file, opt
 									'</style>'
@@ -194,7 +195,7 @@ compileSass = (file, opt) ->
 							cssBase64img(content, file.path, opt)
 					).then(
 						(content) ->
-							file.contents = new Buffer [
+							file.contents = Buffer.from [
 								trace + '<style>'
 									minifyCSS content, file, opt
 								'</style>'
@@ -232,7 +233,7 @@ compileCss = (file, opt) ->
 						cssBase64img(content, file.path, opt)
 				).then(
 					(content) ->
-						file.contents = new Buffer [
+						file.contents = Buffer.from [
 							trace + '<style>'
 								minifyCSS content, file, opt
 							'</style>'
@@ -254,7 +255,7 @@ compileCoffee = (file, plainId, opt) ->
 		coffeeStream = coffee opt.coffeeOpt
 		coffeeStream.pipe through.obj(
 			(file, enc, next) ->
-				file.contents = new Buffer [
+				file.contents = Buffer.from [
 					if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script>'
 					minifyJS file.contents.toString(), file, opt
 					'</script>'
@@ -276,7 +277,7 @@ compileJs = (file, plainId, opt) ->
 			trace = ''
 		if opt.babel
 			opt.babel(file).then (file) ->
-				file.contents = new Buffer [
+				file.contents = Buffer.from [
 					if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script>'
 					minifyJS file.contents.toString(), file, opt
 					'</script>'
@@ -284,19 +285,34 @@ compileJs = (file, plainId, opt) ->
 				resolve file
 			, reject
 		else
-			file.contents = new Buffer [
+			file.contents = Buffer.from [
 				if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script>'
 				minifyJS file.contents.toString(), file, opt
 				'</script>'
 			].join EOL
 			resolve file
 
+compileTs = (file, plainId, opt) ->
+	Q.Promise (resolve, reject) ->
+		if opt.trace
+			trace = '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->' + EOL
+		else
+			trace = ''
+		content = ts.transpileModule file.contents.toString(),
+			compilerOptions: opt.tsCompilerOptions || {target: ts.ScriptTarget.ES5}
+		file.contents = Buffer.from [
+			if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script>'
+			minifyJS content.outputText, file, opt
+			'</script>'
+		].join EOL
+		resolve file
+
 compileBabel = (file, attrLeft, attrRight, opt) ->
 	Q.Promise (resolve, reject) ->
 		opt.babel(file).then (file) ->
 			attrLeft = ' ' + attrLeft if attrLeft
 			attrRight = ' ' + attrRight if attrRight
-			file.contents = new Buffer [
+			file.contents = Buffer.from [
 				'<script' + attrLeft + attrRight + '>'
 				minifyJS file.contents.toString(), file, opt
 				'</script>'
@@ -343,9 +359,9 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 					factory () ->,
 					exp, mod
 					if (/\.tpl\.html\.js$/).test file.path
-						file.contents = new Buffer trace + exp.render(params)
+						file.contents = Buffer.from trace + exp.render(params)
 					else if (/\.md\.js$/).test file.path
-						file.contents = new Buffer trace + interpolateTemplate(mod.exports, params, opt.interpolate)
+						file.contents = Buffer.from trace + interpolateTemplate(mod.exports, params, opt.interpolate)
 					else
 						throw new PluginError('gulp-html-optimizer', 'Unsupported inline render file type: ' + file.path)
 				else
@@ -357,7 +373,7 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 					else
 						processDefQueue = ''
 					if params.inline is 'yes'
-						file.contents = new Buffer [
+						file.contents = Buffer.from [
 							if params.plainId then trace + '<script type="text/html" id="' + params.plainId + '">' else trace + '<script>'
 							minifyJS file.contents.toString() + EOL + processDefQueue, file, opt
 							'</script>'
@@ -379,7 +395,7 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 								file.contents.toString()
 								processDefQueue
 							].join EOL
-						file.contents = new Buffer trace + '<script src="' + src + '"></script>'
+						file.contents = Buffer.from trace + '<script src="' + src + '"></script>'
 				resolve file
 			(err) ->
 				reject err
@@ -452,7 +468,7 @@ extend = (file, baseFile, opt) ->
 							content = content.replace /(<body[^>]*>)/i, '$1' + EOL + trace
 						else
 							content = trace + EOL + content
-					file.contents = new Buffer content
+					file.contents = Buffer.from content
 					resolve file
 				(err) =>
 					reject err
@@ -478,11 +494,11 @@ compile = (file, baseFile, properties, opt) ->
 				base: file.base
 				cwd: file.cwd
 				path: babelFilePath
-				contents: new Buffer script
+				contents: Buffer.from script
 			asyncList.push compileBabel(babelFile, attrLeft.trim(), attrRight.trim(), opt)
 			asyncMark
 		) if opt.babel
-		content = content.replace(/<!--\s*include\s+(['"])([^'"]+)\.(less|scss|es6|coffee|css|js|inc\.html)\1\s*([\s\S]*?)\s*-->/mg, (full, quote, incName, ext, params) ->
+		content = content.replace(/<!--\s*include\s+(['"])([^'"]+)\.(less|scss|es6|coffee|css|js|ts|inc\.html)\1\s*([\s\S]*?)\s*-->/mg, (full, quote, incName, ext, params) ->
 			params = getParams params, file
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
 			resolvedBaseDir = params.baseDir && path.resolve(fileDir, params.baseDir) || baseDir && path.resolve(fileDir, baseDir) || opt.baseDir && path.resolve(process.cwd(), opt.baseDir)
@@ -506,10 +522,12 @@ compile = (file, baseFile, properties, opt) ->
 				asyncList.push compileCss(incFile, opt)
 			else if ext is 'js'
 				asyncList.push compileJs(incFile, params.plainId, opt)
+			else if ext is 'ts'
+				asyncList.push compileTs(incFile, params.plainId, opt)
 			else
 				if opt.trace
 					trace = '<!-- trace:' + path.relative(process.cwd(), incFile.path) + ' -->' + EOL
-					incFile.contents = new Buffer trace + incFile.contents.toString()
+					incFile.contents = Buffer.from trace + incFile.contents.toString()
 				asyncList.push compile(incFile, baseFile, params, opt)
 			asyncMark
 		)
@@ -543,7 +561,7 @@ compile = (file, baseFile, properties, opt) ->
 						incFile.contents.toString()
 				htmlBase64img(content, path.dirname(file.path), opt).then(
 					(content) ->
-						file.contents = new Buffer content
+						file.contents = Buffer.from content
 						if not (/\.inc\.html$/).test(file.path)
 							extend(file, baseFile, opt).then(
 								(file) ->
@@ -589,7 +607,7 @@ module.exports = (opt = {}) ->
 						content = content.replace /(<body[^>]*>)/i, '$1' + EOL + trace
 					else
 						content = trace + EOL + content
-					file.contents = new Buffer content
+					file.contents = Buffer.from content
 				@push file
 				next()
 			(err) =>
