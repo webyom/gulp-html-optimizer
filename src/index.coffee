@@ -70,8 +70,6 @@ interpolateTemplate = (tpl, data, opt = {}) ->
 
 minifyJS = (content, file, opt) ->
 	content = content.toString()
-	if opt.envify
-		content = envifyReplace content, [opt.envify.env || process.env]
 	if opt.minifyJS
 		res = Terser.minify content, _.extend({}, opt.minifyJS)
 		if res.error
@@ -258,9 +256,12 @@ compileCoffee = (file, plainId, opt) ->
 		coffeeStream = coffee opt.coffeeOpt
 		coffeeStream.pipe through.obj(
 			(file, enc, next) ->
+				content = file.contents.toString()
+				if opt.envify
+					content = envifyReplace content, [opt.envify.env || process.env]
 				file.contents = Buffer.from [
 					if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script>'
-					minifyJS file.contents.toString(), file, opt
+					minifyJS content, file, opt
 					'</script>'
 				].join EOL
 				resolve file
@@ -280,17 +281,23 @@ compileJs = (file, plainId, opt) ->
 			trace = ''
 		if opt.babel
 			opt.babel(file).then (file) ->
+				content = file.contents.toString()
+				if opt.envify
+					content = envifyReplace content, [opt.envify.env || process.env]
 				file.contents = Buffer.from [
 					if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script>'
-					minifyJS file.contents.toString(), file, opt
+					minifyJS content, file, opt
 					'</script>'
 				].join EOL
 				resolve file
 			, reject
 		else
+			content = file.contents.toString()
+			if opt.envify
+				content = envifyReplace content, [opt.envify.env || process.env]
 			file.contents = Buffer.from [
 				if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script>'
-				minifyJS file.contents.toString(), file, opt
+				minifyJS content, file, opt
 				'</script>'
 			].join EOL
 			resolve file
@@ -303,9 +310,12 @@ compileTs = (file, plainId, opt) ->
 			trace = ''
 		content = ts.transpileModule file.contents.toString(),
 			compilerOptions: opt.tsCompilerOptions || {target: ts.ScriptTarget.ES5}
+		content = content.outputText
+		if opt.envify
+			content = envifyReplace content, [opt.envify.env || process.env]
 		file.contents = Buffer.from [
 			if plainId then trace + '<script type="text/html" id="' + plainId + '">' else trace + '<script>'
-			minifyJS content.outputText, file, opt
+			minifyJS content, file, opt
 			'</script>'
 		].join EOL
 		resolve file
@@ -315,9 +325,12 @@ compileBabel = (file, attrLeft, attrRight, opt) ->
 		opt.babel(file).then (file) ->
 			attrLeft = ' ' + attrLeft if attrLeft
 			attrRight = ' ' + attrRight if attrRight
+			content = file.contents.toString()
+			if opt.envify
+				content = envifyReplace content, [opt.envify.env || process.env]
 			file.contents = Buffer.from [
 				'<script' + attrLeft + attrRight + '>'
-				minifyJS file.contents.toString(), file, opt
+				minifyJS content, file, opt
 				'</script>'
 			].join EOL
 			resolve file
@@ -348,12 +361,15 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 			useExternalCssModuleHelper: opt.useExternalCssModuleHelper
 		}).then(
 			(file) ->
+				content = file.contents.toString()
+				if opt.envify
+					content = envifyReplace content, [opt.envify.env || process.env]
 				if params.render
 					define = (id, deps, factory) ->
 						factory
 					factory = null
 					try
-						eval 'factory = ' + file.contents.toString().replace(/[\s\S]*\bdefine\(/, 'define(')
+						eval 'factory = ' + content.replace(/[\s\S]*\bdefine\(/, 'define(')
 					catch err
 						console.log file.path
 						throw err
@@ -378,7 +394,7 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 					if params.inline is 'yes'
 						file.contents = Buffer.from [
 							if params.plainId then trace + '<script type="text/html" id="' + params.plainId + '">' else trace + '<script>'
-							minifyJS file.contents.toString() + EOL + processDefQueue, file, opt
+							minifyJS content + EOL + processDefQueue, file, opt
 							'</script>'
 						].join EOL
 					else
@@ -391,11 +407,11 @@ compileAmd = (file, baseFile, baseDir, params, opt) ->
 							src = path.relative (baseDir || path.dirname(baseFile.path)), file.path
 						if baseDir and src.indexOf('.') isnt 0
 							src = '/' + src
-						if not processDefQueue or file.contents.toString().slice(-processDefQueue.length) is processDefQueue
-							fs.writeFileSync outPath, file.contents.toString()
+						if not processDefQueue or content.slice(-processDefQueue.length) is processDefQueue
+							fs.writeFileSync outPath, content
 						else
 							fs.writeFileSync outPath, [
-								file.contents.toString()
+								content
 								processDefQueue
 							].join EOL
 						file.contents = Buffer.from trace + '<script src="' + src + '"></script>'

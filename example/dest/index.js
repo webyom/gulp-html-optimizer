@@ -13,7 +13,7 @@ define('./index', ['require', 'exports', 'module', './mod-a', './mod-b', './inli
 define('./mod-a', ['require', 'exports', 'module', './sub/mod-c', './tpl-a.tpl.html'], function(require) {
 	var modC = require('./sub/mod-c');
 	var tplA = require('./tpl-a.tpl.html');
-	if (process.env.NODE_ENV === 'prd') {
+	if ("development" === 'prd') {
 		console.log('prd');
 	}
 
