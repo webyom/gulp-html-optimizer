@@ -1,6 +1,6 @@
 {
   "name": "gulp-html-optimizer",
-  "version": "1.52.0",
+  "version": "1.54.0",
   "description": "Optimize html files.",
   "keywords": [
     "html",
@@ -35,8 +35,10 @@
     "gulp-sass": "^4.0.2",
     "gulp-sus": "^0.2.0",
     "lodash": "^2.4.1",
+    "loose-envify": "^1.4.0",
     "plugin-error": "^1.0.0",
     "q": "^1.0.1",
+    "terser": "^4.3.9",
     "through2": "^0.5.1",
     "typescript": "^3.6.4",
     "uglify-es": "^3.3.6",

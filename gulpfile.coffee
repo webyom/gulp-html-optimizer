@@ -20,6 +20,7 @@ gulp.task 'example', ['sprite'], ->
 	htmlOptimizer = require './lib/index'
 	gulp.src('example/src/**/*.src.html')
 		.pipe htmlOptimizer
+			minifyJS: true
 			generateDataUri: true
 			cssSprite: 
 				base: 
@@ -31,6 +32,9 @@ gulp.task 'example', ['sprite'], ->
 			interpolate:
 				open: '${'
 				close: '}'
+			envify:
+				env:
+					NODE_ENV: process.env.NODE_ENV || 'development'
 			postcss: (file, type) ->
 				postcss([postcssImport(), autoprefixer()])
 					.process file.contents.toString(),

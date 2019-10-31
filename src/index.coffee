@@ -12,8 +12,9 @@ amdBundler = require 'gulp-amd-bundler'
 sus = require 'gulp-sus'
 gulpCssSprite = require 'gulp-img-css-sprite'
 CleanCSS = require 'clean-css'
-UglifyJS = require 'uglify-es'
 ts = require 'typescript'
+Terser = require 'terser'
+envifyReplace = require 'loose-envify/replace'
 
 EOL = '\n'
 
@@ -69,8 +70,10 @@ interpolateTemplate = (tpl, data, opt = {}) ->
 
 minifyJS = (content, file, opt) ->
 	content = content.toString()
+	if opt.envify
+		content = envifyReplace content, [opt.envify.env || process.env]
 	if opt.minifyJS
-		res = UglifyJS.minify content, _.extend({}, opt.minifyJS)
+		res = Terser.minify content, _.extend({}, opt.minifyJS)
 		if res.error
 			res.error.filename = file.path
 			console.log res.error
@@ -500,6 +503,7 @@ compile = (file, baseFile, properties, opt) ->
 		) if opt.babel
 		content = content.replace(/<!--\s*include\s+(['"])([^'"]+)\.(less|scss|es6|coffee|css|js|ts|inc\.html)\1\s*([\s\S]*?)\s*-->/mg, (full, quote, incName, ext, params) ->
 			params = getParams params, file
+			return full if params.if is 'no'
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
 			resolvedBaseDir = params.baseDir && path.resolve(fileDir, params.baseDir) || baseDir && path.resolve(fileDir, baseDir) || opt.baseDir && path.resolve(process.cwd(), opt.baseDir)
 			if resolvedBaseDir and incName.indexOf('.') isnt 0
