@@ -463,13 +463,23 @@ compileExtendFile = (file, baseFile, extendFilePath, opt) ->
 					reject err
 			).done()
 
-extend = (file, baseFile, opt) ->
+resolveFilePath = (filePath, baseDir, relDir) ->
+	if filePath.indexOf('/') is 0 and baseDir
+		path.join baseDir, filePath
+	else if filePath.indexOf('~') is 0
+		path.join path.resolve('node_modules'), filePath.slice(1)
+	else if relDir
+		path.resolve relDir, filePath
+	else
+		filePath
+
+extend = (file, baseFile, opt = {}) ->
 	Q.Promise (resolve, reject) ->
 		content = file.contents.toString()
 		fileDir = path.dirname file.path
 		extendFilePath = ''
 		content.replace(/<!--\s*extend\s+(['"])([^'"]+)\1\s*-->/mg, (full, quote, extendFileName) ->
-			extendFilePath = path.resolve fileDir, extendFileName
+			extendFilePath = resolveFilePath extendFileName, opt.baseDir, fileDir
 		)
 		if extendFilePath
 			compileExtendFile(file, baseFile, extendFilePath, opt).then(
@@ -523,10 +533,7 @@ compile = (file, baseFile, properties, opt) ->
 			return full if params.if is 'no'
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
 			resolvedBaseDir = params.baseDir && path.resolve(fileDir, params.baseDir) || baseDir && path.resolve(fileDir, baseDir) || opt.baseDir && path.resolve(process.cwd(), opt.baseDir)
-			if resolvedBaseDir and incName.indexOf('.') isnt 0
-				incFilePath = path.join resolvedBaseDir, incName + '.' + ext
-			else
-				incFilePath = path.resolve fileDir, incName + '.' + ext
+			incFilePath = resolveFilePath (incName + '.' + ext), resolvedBaseDir, fileDir
 			incFile = new Vinyl
 				base: file.base
 				cwd: file.cwd
@@ -557,10 +564,7 @@ compile = (file, baseFile, properties, opt) ->
 			return full if opt.optimizeRequire is 'ifAlways' and not params.alwaysOptimize
 			asyncMark = '<INC_PROCESS_ASYNC_MARK_' + asyncList.length + '>'
 			resolvedBaseDir = params.baseDir && path.resolve(fileDir, params.baseDir) || baseDir && path.resolve(fileDir, baseDir) || opt.baseDir && path.resolve(process.cwd(), opt.baseDir)
-			if resolvedBaseDir and amdName.indexOf('.') isnt 0
-				amdFilePath = path.join resolvedBaseDir, amdName
-			else
-				amdFilePath = path.resolve fileDir, amdName
+			amdFilePath = resolveFilePath amdName, resolvedBaseDir, fileDir
 			if fs.existsSync amdFilePath
 				amdFilePath = amdFilePath
 			else if fs.existsSync amdFilePath + '.coffee'
