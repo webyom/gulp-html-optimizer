@@ -452,16 +452,17 @@ compileExtendFile = (file, baseFile, extendFilePath, opt) ->
 		if extendFile._compiled_
 			resolve extendFile
 		else
-			compile(extendFile, baseFile, null, opt).then(
-				(extendFile) =>
-					extendFile._compiled_ = true
-					if opt.cacheExtend isnt false
-						extendCache[cate] ?= {}
-						extendCache[cate][extendFile.path] = extendFile
-					resolve extendFile
-				(err) =>
-					reject err
-			).done()
+			(opt.layoutPreprocess || (file, cb) -> cb(file)) extendFile, (extendFile) ->
+				compile(extendFile, baseFile, null, opt).then(
+					(extendFile) ->
+						extendFile._compiled_ = true
+						if opt.cacheExtend isnt false
+							extendCache[cate] ?= {}
+							extendCache[cate][extendFile.path] = extendFile
+						resolve extendFile
+					(err) ->
+						reject err
+				).done()
 
 resolveFilePath = (filePath, baseDir, relDir) ->
 	if filePath.indexOf('/') is 0 and baseDir
