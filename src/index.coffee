@@ -490,7 +490,7 @@ extend = (file, baseFile, opt = {}) ->
 					)
 					content = extendFile.contents.toString()
 					content = content.replace(/<!--\s*yield\s+(['"])([^'"]+)\1\s*-->([\s\S]*?)<!--\s*\/yield\s*-->/mg, (full, quote, yieldName, yieldContent) ->
-						sectionMap[yieldName] or yieldContent
+						sectionMap[yieldName] or yieldContent or full
 					)
 					if opt.trace
 						trace = '<!-- trace:' + path.relative(process.cwd(), extendFile.path) + ' -->'
