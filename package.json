@@ -48,7 +48,7 @@
     "autoprefixer": "^9.3.1",
     "coffee-script": "^1.7.1",
     "gulp": "^3.8.5",
-    "postcss": "^7.0.6",
+    "postcss": "^8.2.10",
     "postcss-import": "^12.0.1"
   }
 }
